@@ -2,50 +2,415 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <!-- Customer Info Header -->
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold mb-2">สาขาทั้งหมดของ {{ customer.name }}</h1>
-        <p class="text-gray-600">รหัสลูกค้า: {{ customer.id }}</p>
-    </div>
+   <!-- Customer Info Header -->
+   <div class="mb-8">
+       <h1 class="text-2xl font-bold mb-2">สาขาทั้งหมดของ {{ customer.name }}</h1>
+       <p class="text-gray-600">รหัสลูกค้า: {{ customer.id }}</p>
+   </div>
 
-    <!-- Branches List -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสสาขา</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อสาขา</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ที่อยู่</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เบอร์โทร</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การจัดการ</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% for branch in branches %}
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ branch.id }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ branch.name }}</td>
-                    <td class="px-6 py-4">{{ branch.address }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ branch.phone }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <a href="{{ url_for('edit_branch', branch_id=branch.id) }}" 
-                           class="text-indigo-600 hover:text-indigo-900 mr-4">แก้ไข</a>
-                        <a href="{{ url_for('delete_branch', branch_id=branch.id) }}" 
-                           class="text-red-600 hover:text-red-900"
-                           onclick="return confirm('คุณแน่ใจที่จะลบสาขานี้หรือไม่?')">ลบ</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Add New Branch Button -->
-    <div class="mt-6">
-        <a href="{{ url_for('add_branch', customer_id=customer.id) }}" 
+   <!-- Add Branch Button -->
+   <div class="mb-6">
+       <button onclick="openAddBranchModal()"
            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            เพิ่มสาขาใหม่
-        </a>
-    </div>
+           เพิ่มสาขาใหม่
+       </button>
+   </div>
+
+   <!-- Branches List -->
+   <div class="bg-white shadow-md rounded-lg overflow-hidden">
+       <table class="min-w-full divide-y divide-gray-200">
+           <thead class="bg-gray-50">
+               <tr>
+                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสสาขา</th>
+                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อสาขา</th>
+                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เบอร์โทร</th>
+                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การจัดการ</th>
+               </tr>
+           </thead>
+           <tbody class="bg-white divide-y divide-gray-200">
+               {% for branch in branches %}
+               <tr>
+                   <td class="px-6 py-4 whitespace-nowrap">{{ branch.branch_code }}</td>
+                   <td class="px-6 py-4 whitespace-nowrap">{{ branch.name }}</td>
+                   <td class="px-6 py-4 whitespace-nowrap">{{ branch.contact_phone }}</td>
+                   <td class="px-6 py-4 whitespace-nowrap">
+                    <button onclick="openRemoteModal('{{ branch.id }}')"
+                        class="text-green-600 hover:text-green-900 mr-4">เพิ่มรีโมท</button>
+                    <button onclick="openEditBranchModal('{{ branch.id }}')"
+                        class="text-indigo-600 hover:text-indigo-900 mr-4">แก้ไข</button>
+                    <button onclick="deleteBranch('{{ branch.id }}')"
+                        class="text-red-600 hover:text-red-900">ลบ</button>
+                 </td>
+               </tr>
+               {% endfor %}
+           </tbody>
+       </table>
+   </div>
 </div>
+
+<!-- Add Branch Modal -->
+<div id="addBranchModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
+   <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
+       <!-- Modal Header -->
+       <div class="flex justify-between items-center p-4 border-b">
+           <h3 class="text-lg font-semibold">เพิ่มสาขาใหม่</h3>
+           <button onclick="closeAddBranchModal()" class="text-gray-500 hover:text-gray-700">
+               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+               </svg>
+           </button>
+       </div>
+
+        <!-- Modal Content -->
+        <form id="addBranchForm" class="p-4" onsubmit="addBranch(event)">
+            <input type="hidden" id="customer_id" name="customer_id" value="{{ customer.id }}">
+                    
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label for="branch_code" class="block text-sm font-medium text-gray-700">
+                        รหัสสาขา <span class="text-red-500">(ถ้ามีไม่บังคับ)</span>
+                    </label>
+                    <input type="text" id="branch_code" name="branch_code" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="branch_name" class="block text-sm font-medium text-gray-700">
+                        ชื่อสาขา <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="branch_name" name="name" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+        
+                <div>
+                    <label for="contact_name" class="block text-sm font-medium text-gray-700">ชื่อผู้ติดต่อ</label>
+                    <input type="text" id="contact_name" name="contact_name"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+        
+                <div>
+                    <label for="contact_phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                    <input type="tel" id="contact_phone" name="contact_phone"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </div>
+        </form>
+        <div class="mt-4 px-4 pb-4 flex justify-end space-x-2">
+            <button type="button" onclick="closeAddBranchModal()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+                ยกเลิก
+            </button>
+            <button type="button" onclick="addBranch()"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
+                บันทึก
+            </button>
+         </div>
+       </form>
+   </div>
+</div>
+
+<!-- Edit Branch Modal -->
+<div id="editBranchModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
+   <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
+       <!-- Modal Header -->
+       <div class="flex justify-between items-center p-4 border-b">
+           <h3 class="text-lg font-semibold">แก้ไขข้อมูลสาขา</h3>
+           <button onclick="closeEditBranchModal()" class="text-gray-500 hover:text-gray-700">
+               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+               </svg>
+           </button>
+       </div>
+
+       <!-- Modal Content -->
+       <form id="editBranchForm" class="p-4" onsubmit="updateBranch(event)">
+           <input type="hidden" id="edit_branch_id" name="branch_id">
+           
+           <div class="grid grid-cols-1 gap-4">
+               <div>
+                   <label for="edit_branch_name" class="block text-sm font-medium text-gray-700">
+                       ชื่อสาขา <span class="text-red-500">*</span>
+                   </label>
+                   <input type="text" id="edit_branch_name" name="name" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+               </div>
+
+               <div>
+                   <label for="edit_contact_name" class="block text-sm font-medium text-gray-700">ชื่อผู้ติดต่อ</label>
+                   <input type="text" id="edit_contact_name" name="contact_name"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+               </div>
+
+               <div>
+                   <label for="edit_contact_phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                   <input type="tel" id="edit_contact_phone" name="contact_phone"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+               </div>
+
+               <div>
+                   <label for="edit_address" class="block text-sm font-medium text-gray-700">ที่อยู่</label>
+                   <textarea id="edit_address" name="address" rows="3"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+               </div>
+           </div>
+
+            <!-- Footer buttons with padding -->
+            <div class="mt-4 px-4 pb-4 flex justify-end space-x-2">
+                <button type="button" onclick="closeAddBranchModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+                    ยกเลิก
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
+                    บันทึก
+                </button>
+            </div>
+       </form>
+   </div>
+</div>
+
+<!-- Remote Modal -->
+<div id="remoteModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-lg font-semibold">ข้อมูลรีโมท</h3>
+            <button onclick="closeRemoteModal()"
+                class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+ 
+        <!-- Modal Content -->
+        <div class="p-4">
+            <!-- Machine Type -->
+            <div class="mb-4">
+                <h4 class="text-base font-medium mb-2">ประเภทเครื่อง</h4>
+                <select id="remote_machine_type" 
+                        class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md"
+                        >
+                    <option value="Cashier">Cashier</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Take Order">Take Order</option>
+                    <option value="Server">Server</option>
+                </select>
+            </div>
+ 
+            <!-- Teamviewer Section -->
+            <div class="mb-4">
+                <h4 class="text-base font-medium mb-2">Teamviewer</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">ID</label>
+                        <input type="text" id="remote_teamviewer_id" 
+                            class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">Password</label>
+                        <input type="text" id="remote_teamviewer_password" 
+                            class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- Anydesk Section -->
+            <div class="mb-4">
+                <h4 class="text-base font-medium mb-2">Anydesk</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">ID</label>
+                        <input type="text" id="remote_anydesk_id" 
+                            class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">Password</label>
+                        <input type="text" id="remote_anydesk_password" 
+                            class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- Note Section -->
+            <div>
+                <h4 class="text-base font-medium mb-2">หมายเหตุ</h4>
+                <textarea id="remote_note" rows="3"
+                    class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md resize-none"></textarea>
+            </div>
+        </div>
+ 
+        <!-- Modal Footer -->
+        <div class="px-4 py-3 border-t bg-gray-50 flex justify-end">
+            <button onclick="closeRemoteModal()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+                ปิด
+            </button>
+        </div>
+    </div>
+ </div>
+
+<script>
+function openRemoteModal(branchId) {
+    fetch(`/api/branches/${branchId}`)
+        .then(response => response.json())
+        .then(branch => {
+            // Set machine type dropdown
+            const machineTypeSelect = document.getElementById('remote_machine_type');
+            if (branch.machine_type) {
+                machineTypeSelect.value = branch.machine_type;
+            } else {
+                machineTypeSelect.selectedIndex = 0;
+            }
+
+            // Set other fields
+            document.getElementById('remote_teamviewer_id').value = branch.teamviewer_id || '';
+            document.getElementById('remote_teamviewer_password').value = branch.teamviewer_password || '';
+            document.getElementById('remote_anydesk_id').value = branch.anydesk_id || '';
+            document.getElementById('remote_anydesk_password').value = branch.anydesk_password || '';
+            document.getElementById('remote_note').value = branch.note || '';
+
+            // Show modal
+            document.getElementById('remoteModal').classList.remove('hidden');
+            document.getElementById('remoteModal').classList.add('flex');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาดในการโหลดข้อมูลรีโมท');
+        });
+}
+
+function closeRemoteModal() {
+   document.getElementById('remoteModal').classList.add('hidden');
+   document.getElementById('remoteModal').classList.remove('flex');
+}
+</script>
+
+<script>
+function openAddBranchModal() {
+   document.getElementById('addBranchModal').classList.remove('hidden');
+   document.getElementById('addBranchModal').classList.add('flex');
+}
+
+function closeAddBranchModal() {
+   document.getElementById('addBranchModal').classList.add('hidden');
+   document.getElementById('addBranchModal').classList.remove('flex');
+}
+
+function addBranch() {
+    const formData = {
+        name: document.getElementById('branch_name').value,
+        contact_name: document.getElementById('contact_name').value,
+        contact_phone: document.getElementById('contact_phone').value,
+        customer_id: document.getElementById('customer_id').value
+    };
+    
+    console.log('Sending data:', formData);
+    
+    fetch('/api/branches', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('เพิ่มสาขาเรียบร้อยแล้ว');
+            closeAddBranchModal();
+            location.reload();
+        } else {
+            alert('เกิดข้อผิดพลาด: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    });
+}
+
+function openEditBranchModal(branchId) {
+   fetch(`/api/branches/${branchId}`)
+       .then(response => response.json())
+       .then(branch => {
+           document.getElementById('edit_branch_id').value = branch.id;
+           document.getElementById('edit_branch_name').value = branch.name;
+           document.getElementById('edit_contact_name').value = branch.contact_name || '';
+           document.getElementById('edit_contact_phone').value = branch.contact_phone || '';
+           document.getElementById('edit_address').value = branch.address || '';
+
+           document.getElementById('editBranchModal').classList.remove('hidden');
+           document.getElementById('editBranchModal').classList.add('flex');
+       })
+       .catch(error => {
+           console.error('Error:', error);
+           alert('เกิดข้อผิดพลาดในการโหลดข้อมูลสาขา');
+       });
+}
+
+function closeEditBranchModal() {
+   document.getElementById('editBranchModal').classList.add('hidden');
+   document.getElementById('editBranchModal').classList.remove('flex');
+}
+
+function updateBranch(event) {
+   event.preventDefault();
+   const branchId = document.getElementById('edit_branch_id').value;
+   const formData = {
+       name: document.getElementById('edit_branch_name').value,
+       contact_name: document.getElementById('edit_contact_name').value,
+       contact_phone: document.getElementById('edit_contact_phone').value,
+       address: document.getElementById('edit_address').value
+   };
+
+   fetch(`/api/branches/${branchId}`, {
+       method: 'PUT',
+       headers: {
+           'Content-Type': 'application/json',
+       },
+       body: JSON.stringify(formData)
+   })
+   .then(response => response.json())
+   .then(data => {
+       if (data.success) {
+           closeEditBranchModal();
+           location.reload();
+       } else {
+           alert(data.message);
+       }
+   })
+   .catch(error => {
+       console.error('Error:', error);
+       alert('เกิดข้อผิดพลาดในการอัพเดทข้อมูลสาขา');
+   });
+}
+
+function deleteBranch(branchId) {
+    if (confirm('คุณแน่ใจที่จะลบสาขานี้หรือไม่?')) {
+        console.log('Deleting branch:', branchId); // Debug log
+
+        fetch(`/api/branches/${branchId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response:', data); // Debug log
+            if (data.success) {
+                alert('ลบสาขาเรียบร้อยแล้ว');
+                location.reload();
+            } else {
+                alert('เกิดข้อผิดพลาด: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาดในการลบสาขา');
+        });
+    }
+}
+</script>
 {% endblock %}

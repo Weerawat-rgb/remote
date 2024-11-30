@@ -32,6 +32,8 @@ class Customer(db.Model):
     hq_contact_phone = db.Column(db.Unicode(20))
     hq_contact_email = db.Column(db.Unicode(120))
     hq_address = db.Column(db.Unicode(500))
+    tax_number = db.Column(db.Unicode(100), nullable=True)
+    isactive = db.Column(db.Boolean, nullable = False, default=True)
     branches = db.relationship('Branch', backref='customer', lazy=True)
 
 class Branch(db.Model):
@@ -40,11 +42,17 @@ class Branch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('Customers.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
+    branch_code = db.Column(db.String(100))
     address = db.Column(db.String(200))
     contact_name = db.Column(db.String(100))
+    teamviewer_id = db.Column(db.String(20))
+    teamviewer_pwd = db.Column(db.String(20))
+    anydesk_id = db.Column(db.String(20))
+    anydesk_pwd = db.Column(db.String(20))
     contact_phone = db.Column(db.String(20))
     contact_email = db.Column(db.String(100))
     devices = db.relationship('Device', backref='branch', lazy=True)
+    isactive = db.Column(db.Boolean, nullable=True, default=True)
 
 class Device(db.Model):
     __tablename__ = 'Devices'
@@ -53,10 +61,11 @@ class Device(db.Model):
     branch_id = db.Column(db.Integer, db.ForeignKey('Branches.id'), nullable=False)
     device_type = db.Column(db.String(50), nullable=False)
     teamviewer_id = db.Column(db.String(50))
-    teamviewer_password = db.Column(db.String(50))
+    teamviewer_pwd = db.Column(db.String(50))
     anydesk_id = db.Column(db.String(50))
-    anydesk_password = db.Column(db.String(50))
+    anydesk_pwd = db.Column(db.String(50))
     notes = db.Column(db.Text)
+    isactive = db.Column(db.Boolean, nullable=True, default=True)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
         
 # Routes
@@ -107,7 +116,9 @@ def get_customer(customer_id):
         'hq_contact_phone': customer.hq_contact_phone,
         'hq_contact_email': customer.hq_contact_email,
         'hq_address': customer.hq_address,
-        'has_logo': customer.logo is not None  # ส่งแค่ flag ว่ามี logo หรือไม่
+        'has_logo': customer.logo is not None,  
+        'tax_number': customer.tax_number,  
+        'logo_mimetype': customer.logo_mimetype if customer.logo else None
     })
     
 @app.route('/customer-logo/<int:customer_id>')
@@ -135,6 +146,16 @@ def customer_logo(customer_id):
         print(f"Error serving logo: {str(e)}")
         return '', 404
 
+@app.route('/api/customers/<int:id>/logo')
+def get_customer_logo(id):
+    customer = Customer.query.get_or_404(id)
+    if customer.logo:
+        return send_file(
+            io.BytesIO(customer.logo),
+            mimetype=customer.logo_mimetype
+        )
+    return '', 404
+
 @app.route('/customers/add', methods=['GET', 'POST'])
 def add_customer():
     if request.method == 'POST':
@@ -148,6 +169,7 @@ def add_customer():
             hq_contact_phone = request.form.get('hq_contact_phone')
             hq_contact_email = request.form.get('hq_contact_email')
             hq_address = request.form.get('hq_address')
+            tax_number = request.form.get('tax_number')
             
             # รับไฟล์ logo
             logo_file = request.files.get('logo')
@@ -162,7 +184,8 @@ def add_customer():
                 hq_contact_name=hq_contact_name,
                 hq_contact_phone=hq_contact_phone,
                 hq_contact_email=hq_contact_email,
-                hq_address=hq_address
+                hq_address=hq_address,
+                tax_number=tax_number
             )
 
             # ถ้ามีการอัพโหลด logo
@@ -200,6 +223,7 @@ def update_customer(customer_id):
         customer.hq_contact_phone = request.form.get('hq_contact_phone', customer.hq_contact_phone)
         customer.hq_contact_email = request.form.get('hq_contact_email', customer.hq_contact_email)
         customer.hq_address = request.form.get('hq_address', customer.hq_address)
+        customer.tax_number = request.form.get('tax_number', customer.tax_number)
         
         # Handle logo update if file is provided
         if 'logo' in request.files:
@@ -225,24 +249,87 @@ def update_customer(customer_id):
         print(f"Error updating customer: {str(e)}")
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/customer/<int:customer_id>/branch/add', methods=['GET', 'POST'])
-def add_branch(customer_id):
-    if request.method == 'POST':
-        branch = Branch(
-            customer_id=customer_id,
-            name=request.form['name'],
-            address=request.form['address'],
-            contact_name=request.form['contact_name'],
-            contact_phone=request.form['contact_phone'],
-            contact_email=request.form['contact_email']
-        )
-        db.session.add(branch)
+    
+@app.route('/api/customers/<int:id>', methods=['DELETE'])
+def delete_customer(id):
+    try:
+        # ค้นหาลูกค้าจาก ID
+        customer = Customer.query.get_or_404(id)
+        
+            # เช็คจำนวนสาขา
+        if len(customer.branches) > 0:
+            return jsonify({
+                'success': False, 
+                'message': f'ไม่สามารถลบลูกค้าได้เนื่องจากมีข้อมูลสาขาจำนวน {len(customer.branches)} สาขา รบกวนลบข้อมูลสาขาทั้งหมดก่อนที่จะลบลูกค้ารายนี้ครับ'
+            }), 400
+            
+        # Soft delete โดยการ set active = 0
+        customer.isactive = False
         db.session.commit()
-        flash('Branch added successfully')
-        return redirect(url_for('view_customer', customer_id=customer_id))
-    return render_template('add_branch.html', customer_id=customer_id)
+        
+        # Log การลบ
+        print(f"Customer {id} deactivated successfully")
+        
+        return jsonify({
+            'success': True,
+            'message': 'ปิดการใช้งานลูกค้าเรียบร้อยแล้ว'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        # Log error
+        print(f"Error deactivating customer {id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'เกิดข้อผิดพลาดในการปิดการใช้งานลูกค้า: {str(e)}'
+        }), 500
+                
+@app.route('/api/branches', methods=['POST'])
+def add_branch():
+    try:
+        data = request.get_json(force=True)  # เพิ่ม force=True
+        new_branch = Branch(
+            customer_id=data['customer_id'],
+            name=data['name'],
+            contact_name=data['contact_name'],
+            contact_phone=data['contact_phone']
+        )
+        
+        db.session.add(new_branch)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'เพิ่มสาขาเรียบร้อยแล้ว'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
 
+@app.route('/api/branches/<int:branch_id>', methods=['DELETE'])
+def delete_branch(branch_id):
+   try:
+       branch = Branch.query.get_or_404(branch_id)
+       # Soft delete โดยการ set isactive = False แทนการลบ
+       branch.isactive = False
+       db.session.commit()
+       
+       return jsonify({
+           'success': True,
+           'message': 'ปิดการใช้งานสาขาเรียบร้อยแล้ว'
+       })
+   except Exception as e:
+       db.session.rollback()
+       print(f"Error deactivating branch: {str(e)}")  # Debug log
+       return jsonify({
+           'success': False,
+           'message': f'เกิดข้อผิดพลาด: {str(e)}'
+       }), 500
+        
 @app.route('/branch/<int:branch_id>/device/add', methods=['GET', 'POST'])
 def add_device(branch_id):
     if request.method == 'POST':
@@ -266,11 +353,47 @@ def view_customer(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     return render_template('view_customer.html', customer=customer)
 
-@app.route('/customer/<int:customer_id>/branches')
+@app.route('/customers/<int:customer_id>/branches')
 def view_branches(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     branches = Branch.query.filter_by(customer_id=customer_id).all()
-    return render_template('branch.html', customer=customer, branches=branches)
+    return render_template('view_branch.html', customer=customer, branches=branches)
+
+@app.route('/api/branches/<int:branch_id>', methods=['GET'])
+def get_branch(branch_id):
+    branch = Branch.query.get_or_404(branch_id)
+    return jsonify({
+        'id': branch.id,
+        'name': branch.name,
+        'contact_name': branch.contact_name,
+        'contact_phone': branch.contact_phone,
+        'address': branch.address
+    })
+    
+@app.route('/api/branches/<int:branch_id>', methods=['PUT'])
+def edit_branch(branch_id):
+    try:
+        branch = Branch.query.get_or_404(branch_id)
+        data = request.json
+
+        branch.name = data.get('name', branch.name)
+        branch.contact_name = data.get('contact_name', branch.contact_name)
+        branch.contact_phone = data.get('contact_phone', branch.contact_phone)
+        branch.address = data.get('address', branch.address)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'อัพเดทข้อมูลสาขาเรียบร้อยแล้ว'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'เกิดข้อผิดพลาด: {str(e)}'
+        }), 500
 
 
 if __name__ == '__main__':
