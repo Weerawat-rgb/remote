@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Customer & Branch Info Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Customer Info Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 px-4 py-3">
+                <h2 class="text-white text-lg font-semibold">ข้อมูลลูกค้า</h2>
+            </div>
+            <div class="p-4">
+                <table class="w-full">
+                    <tr>
+                        <td
+                            class="py-2 text-gray-600 font-medium">ชื่อลูกค้า:</td>
+                        <td class="py-2">{{ customer.name }}</td>
+                    </tr>
+                    <tr>
+                        <td
+                            class="py-2 text-gray-600 font-medium">เลขประจำตัวผู้เสียภาษี:</td>
+                        <td class="py-2">{{ customer.tax_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 text-gray-600 font-medium">ที่อยู่:</td>
+                        <td class="py-2">{{ customer.hq_address }}</td>
+                    </tr>
+                    <tr>
+                        <td
+                            class="py-2 text-gray-600 font-medium">ผู้ติดต่อ:</td>
+                        <td class="py-2">{{ customer.hq_contact_name }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Branch Info Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-indigo-600 px-4 py-3">
+                <h2 class="text-white text-lg font-semibold">ข้อมูลสาขา</h2>
+            </div>
+            <div class="p-4">
+                <table class="w-full">
+                    <tr>
+                        <td
+                            class="py-2 text-gray-600 font-medium">ชื่อสาขา:</td>
+                        <td class="py-2">{{ branch.name }}</td>
+                    </tr>
+                    <tr>
+                        <td
+                            class="py-2 text-gray-600 font-medium">รหัสสาขา:</td>
+                        <td class="py-2">{{ branch.branch_code }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 text-gray-600 font-medium">ที่อยู่:</td>
+                        <td class="py-2">{{ branch.address }}</td>
+                    </tr>
+                    <tr>
+                        <td
+                            class="py-2 text-gray-600 font-medium">ผู้ติดต่อ:</td>
+                        <td class="py-2">{{ branch.contact_name }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-indigo-600 px-4 py-3">
+            <h2 class="text-white text-lg font-semibold">รายการอุปกรณ์</h2>
+        </div>
+        <div class="p-4">
+            {% for machine_type, devices in devices_by_type.items() %}
+            <div class="mb-6 last:mb-0">
+                <h3 class="text-lg font-medium mb-3 text-gray-800">
+                    {{ machine_type }}
+                    <!-- <span class="text-sm text-gray-500 ml-2">({{ devices|length
+                        }} รายการ)</span> -->
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Teamviewer
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Anydesk
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    หมายเหตุ
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    สถานะ
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for device in devices %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="mb-2">
+                                        <span
+                                            class="text-xs font-medium text-gray-500">ID:</span>
+                                        <span class="ml-1">{{
+                                            device.teamviewer_id }}</span>
+                                    </div>
+                                    <div>
+                                        <span
+                                            class="text-xs font-medium text-gray-500">Password:</span>
+                                        <span class="ml-1">{{
+                                            device.teamviewer_password }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="mb-2">
+                                        <span
+                                            class="text-xs font-medium text-gray-500">ID:</span>
+                                        <span class="ml-1">{{ device.anydesk_id
+                                            }}</span>
+                                    </div>
+                                    <div>
+                                        <span
+                                            class="text-xs font-medium text-gray-500">Password:</span>
+                                        <span class="ml-1">{{
+                                            device.anydesk_password }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ device.note }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if device.status == 'active' %}
+                                            bg-green-100 text-green-800
+                                        {% elif device.status == 'inactive' %}
+                                            bg-red-100 text-red-800
+                                        {% else %}
+                                            bg-yellow-100 text-yellow-800
+                                        {% endif %}">
+                                        {{ device.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

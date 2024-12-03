@@ -14,12 +14,6 @@
         <div class="container mx-auto px-4 py-8">
             <h1 class="text-3xl font-bold mb-6">Remote Access Manager</h1>
 
-            <!-- ปุ่มเพิ่มลูกค้าใหม่
-            <a href="{{ url_for('add_customer') }}"
-                class="bg-blue-500 text-white px-4 py-2 rounded">
-                เพิ่มลูกค้า
-            </a> -->
-
             <!-- แสดงรายการลูกค้า -->
             <div class="mt-8 grid gap-6">
                 {% if customers %}
@@ -83,10 +77,12 @@
                                 <div>
                                     <p><strong>ที่อยู่:</strong> {{
                                         customer.hq_address }}</p>
-                                    <p><strong>หมายเลขประจำตัวผู้เสียภาษี:</strong> {{
+                                    <p><strong>หมายเลขประจำตัวผู้เสียภาษี:</strong>
+                                        {{
                                         customer.tax_number }}</p>
-                                    <p><strong>จำนวนสาขา:</strong> {{
-                                        customer.branches|length }} สาขา</p>
+                                    <p><strong>จำนวนสาขา:</strong> 
+                                        {{ customer.active_branches_count }} สาขา
+                                    </p>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -101,7 +97,8 @@
                 {% else %}
                 <p class="text-gray-500">ยังไม่มีข้อมูลลูกค้า</p>
                 {% endif %}
-            </div> </div>
+            </div>
+        </div>
         <!-- Edit Customer Modal -->
         <div id="editCustomerModal"
             class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
@@ -268,34 +265,7 @@
             </div>
         </div>
 
-        <!-- Add this JavaScript -->
-        <script>
-// function openEditModal(customerId) {
-//     fetch(`/api/customers/${customerId}`)
-//         .then(response => response.json())
-//         .then(customer => {
-//             console.log('Customer data:', customer);  // ดูข้อมูลที่ได้จาก API
-            
-//             // เติมข้อมูลฟอร์ม
-//             document.getElementById('customerId').value = customer.id;
-//             document.getElementById('customerName').value = customer.name;
-//             document.getElementById('contactName').value = customer.hq_contact_name;
-//             document.getElementById('contactPhone').value = customer.hq_contact_phone;
-//             document.getElementById('contactEmail').value = customer.hq_contact_email;
-//             document.getElementById('address').value = customer.hq_address;
-//             document.getElementById('tax_number').value = customer.tax_number || '';  // เพิ่มบรรทัดนี้
-
-
-//             // แสดง logo
-//             const logoImg = document.getElementById('currentLogo');
-//             if (customer.logo) {
-//                 logoImg.src = `/api/customers/${customerId}/logo`;
-//                 console.log('Setting logo src:', `/api/customers/${customerId}/logo`);  // ดู URL ที่ใช้
-//             }
-//         })
-//         .catch(error => console.error('Error:', error));
-// }
-
+<script>
 function closeEditModal() {
     document.getElementById('editCustomerModal').classList.add('hidden');
     document.getElementById('editCustomerModal').classList.remove('flex');

@@ -6,6 +6,7 @@
         <title>ระบบจัดการลูกค้า</title>
         <!-- Tailwind CSS via CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
     </head>
     <body class="bg-gray-100">
         <!-- Fixed Navigation -->
@@ -93,48 +94,100 @@
         </footer>
 
         <script>
-            const VIEW_CUSTOMER_URL = "{{ url_for('view_customer', customer_id=0) }}".slice(0, -1);
             const searchInput = document.getElementById('live-search');
             const searchResults = document.getElementById('search-results');
-            let searchTimeout;
             
-            searchInput.addEventListener('input', function(e) {
-                clearTimeout(searchTimeout);
-                const query = e.target.value;
-            
-                if (query.length < 2) {
-                    searchResults.classList.add('hidden');
-                    return;
+            searchInput.addEventListener('input', async (e) => {
+                const searchTerm = e.target.value.trim();
+                
+                if (searchTerm.length > 0) {
+                    try {
+                        const response = await fetch(`/live-search?q=${searchTerm}`);
+                        const results = await response.json();
+                        showSearchResults(results);
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
+                } else {
+                    hideSearchResults();
                 }
-            
-                // Add debounce to prevent too many requests
-                searchTimeout = setTimeout(() => {
-                    fetch(`/api/search?q=${encodeURIComponent(query)}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.length > 0) {
-                                searchResults.innerHTML = data.map(item => `
-                                <a href="${VIEW_CUSTOMER_URL}${item.id}" 
-                                class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100">
-                                    <div class="font-medium">${item.name}</div>
-                                    <div class="text-sm text-gray-600">${item.hq_contact_name} • ${item.hq_contact_phone}</div>
-                                </a>
-                            `).join('');
-                                searchResults.classList.remove('hidden');
-                            } else {
-                                searchResults.innerHTML = `
-                                    <div class="px-4 py-2 text-gray-500">ไม่พบผลลัพธ์</div>
-                                `;
-                                searchResults.classList.remove('hidden');
-                            }
-                        });
-                }, 300); // 300ms delay
             });
             
-            // Close search results when clicking outside
-            document.addEventListener('click', function(e) {
+            function showSearchResults(results) {
+                searchResults.innerHTML = '';
+                
+                if (results.length === 0) {
+                    searchResults.innerHTML = `
+                        <div class="px-4 py-3 text-sm text-gray-500">
+                            ไม่พบผลการค้นหา
+                        </div>`;
+                } else {
+                    results.forEach(result => {
+                        const div = document.createElement('div');
+                        div.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+                        div.innerHTML = `
+                            <div class="font-medium text-gray-900">${result.customer_name}</div>
+                            <div class="text-gray-500">${result.branch_name} (${result.branch_code})</div>
+                        `;
+                        
+                        div.addEventListener('click', () => {
+                            window.location.href = `/summary/${result.customer_id}/${result.branch_id}`;
+                            hideSearchResults();
+                        });
+                        
+                        searchResults.appendChild(div);
+                    });
+                }
+                
+                searchResults.classList.remove('hidden');
+            }
+            
+            function hideSearchResults() {
+                searchResults.innerHTML = '';
+                searchResults.classList.add('hidden');
+            }
+            
+            // ปิด dropdown เมื่อคลิกนอกพื้นที่
+            document.addEventListener('click', (e) => {
                 if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                    searchResults.classList.add('hidden');
+                    hideSearchResults();
+                }
+            });
+            
+            // ปิด dropdown เมื่อกด Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideSearchResults();
+                }
+            });
+            
+            // เพิ่มการจัดการ keyboard navigation
+            searchInput.addEventListener('keydown', (e) => {
+                const items = searchResults.children;
+                const activeItem = searchResults.querySelector('.bg-gray-100');
+                const activeIndex = Array.from(items).indexOf(activeItem);
+            
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (activeItem) {
+                        const nextIndex = (activeIndex + 1) % items.length;
+                        activeItem.classList.remove('bg-gray-100');
+                        items[nextIndex].classList.add('bg-gray-100');
+                    } else if (items.length > 0) {
+                        items[0].classList.add('bg-gray-100');
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (activeItem) {
+                        const prevIndex = (activeIndex - 1 + items.length) % items.length;
+                        activeItem.classList.remove('bg-gray-100');
+                        items[prevIndex].classList.add('bg-gray-100');
+                    } else if (items.length > 0) {
+                        items[items.length - 1].classList.add('bg-gray-100');
+                    }
+                } else if (e.key === 'Enter' && activeItem) {
+                    e.preventDefault();
+                    activeItem.click();
                 }
             });
             </script>

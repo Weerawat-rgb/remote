@@ -1,0 +1,16 @@
+2024-12-02 11:48:39,177 - __main__ - INFO - Search request - query: µ’, include_inactive: True
+2024-12-02 11:48:39,178 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:48:43,040 - __main__ - INFO - Search request - query: µ’Î, include_inactive: True
+2024-12-02 11:48:43,041 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:48:43,971 - __main__ - INFO - Search request - query: µ’ÎπËÕ, include_inactive: True
+2024-12-02 11:48:43,972 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:48:45,509 - __main__ - INFO - Search request - query: µ’ÎπË, include_inactive: True
+2024-12-02 11:48:45,509 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:48:46,149 - __main__ - INFO - Search request - query: µ’Îπ, include_inactive: True
+2024-12-02 11:48:46,149 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:48:47,094 - __main__ - INFO - Search request - query: µ’ÎπÈÕ¬, include_inactive: True
+2024-12-02 11:48:47,095 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:48:54,605 - __main__ - INFO - Search request - query: BBK-002, include_inactive: True
+2024-12-02 11:48:54,606 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
+2024-12-02 11:49:09,974 - __main__ - INFO - Search request - query: BBK-002, include_inactive: True
+2024-12-02 11:49:09,975 - __main__ - ERROR - Database error: Textual SQL expression '\n            SELECT \n    ...' should be explicitly declared as text('\n            SELECT \n    ...')
