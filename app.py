@@ -690,7 +690,7 @@ def export_branches(customer_id):
             data.append({
                 'รหัสสาขา': branch.branch_code,
                 'ชื่อสาขา': branch.name,
-                'ชื่อผู้ติดต่อ': branch.contact_name,
+                # 'ชื่อผู้ติดต่อ': branch.contact_name,
                 'เบอร์โทร': branch.contact_phone
             })
         
@@ -872,4 +872,7 @@ def summary(customer_id, branch_id):
                              details=str(e)), 500
             
 if __name__ == '__main__':
-    serve(app, host='0.0.0.0', port=8080)
+    app.run()
+    
+# if __name__ == '__main__':
+#     serve(app, host='0.0.0.0', port=8080)

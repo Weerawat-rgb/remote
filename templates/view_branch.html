@@ -652,15 +652,37 @@
     }
 
     // ฟังก์ชันสำหรับแสดง toast notification
-    function showToast(type, message) {
-        Swal.fire({
-            icon: type === 'success' ? 'success' : 'error',
-            title: message,
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
+    function showToast() {
+        const toast = document.createElement('div');
+        toast.className = `
+        fixed bottom-4 right-4 
+        bg-indigo-600 text-white 
+        px-6 py-3 
+        rounded-lg shadow-lg 
+        flex items-center
+        transform translate-y-0
+        transition-all duration-300
+        z-[9999]
+    `;
+        toast.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>คัดลอกแล้ว</span>
+    `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.transform = 'translate(0, 0)';
+        }, 100);
+
+        // ลบ toast หลังจาก 3 วินาที
+        setTimeout(() => {
+            toast.style.transform = 'translate(0, 200%)';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
     }
 
     function importBranches(input) {
@@ -845,47 +867,34 @@
 
     function copyToClipboard(text) {
         if (text && text !== '-') {
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    // สร้าง toast notification แบบสวยงาม
-                    const toast = document.createElement('div');
-                    toast.className = `
-                   fixed bottom-4 right-4 
-                   bg-indigo-600 text-white 
-                   px-6 py-3 
-                   rounded-lg shadow-lg 
-                   flex items-center
-                   transform translate-y-0
-                   transition-all duration-300
-                   z-[9999]
-               `;
-
-                    // เพิ่ม icon
-                    toast.innerHTML = `
-                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                   </svg>
-                   <span>คัดลอกแล้ว</span>
-               `;
-
-                    document.body.appendChild(toast);
-
-                    // Animation เข้า
-                    setTimeout(() => {
-                        toast.style.transform = 'translate(0, 0)';
-                    }, 100);
-
-                    // Animation ออก
-                    setTimeout(() => {
-                        toast.style.transform = 'translate(0, 100%)';
-                        toast.style.opacity = '0';
-
-                        setTimeout(() => toast.remove(), 300);
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('Failed to copy:', err);
+            // วิธีที่ 1: ใช้ Clipboard API (modern browsers)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast();
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
                 });
+            }
+            // วิธีที่ 2: วิธีดั้งเดิมใช้ textarea
+            else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-999999px';
+                textarea.style.top = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+
+                try {
+                    document.execCommand('copy');
+                    textarea.remove();
+                    showToast();
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                    textarea.remove();
+                }
+            }
         }
     }
 
