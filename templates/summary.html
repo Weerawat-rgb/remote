@@ -2,158 +2,193 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-6">
-    <!-- Customer & Branch Info Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <!-- Customer Info Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="bg-indigo-600 px-4 py-3">
-                <h2 class="text-white text-lg font-semibold">ข้อมูลลูกค้า</h2>
-            </div>
-            <div class="p-4">
-                <table class="w-full">
-                    <tr>
-                        <td
-                            class="py-2 text-gray-600 font-medium">ชื่อลูกค้า:</td>
-                        <td class="py-2">{{ customer.name }}</td>
-                    </tr>
-                    <tr>
-                        <td
-                            class="py-2 text-gray-600 font-medium">เลขประจำตัวผู้เสียภาษี:</td>
-                        <td class="py-2">{{ customer.tax_number }}</td>
-                    </tr>
-                    <tr>
-                        <td class="py-2 text-gray-600 font-medium">ที่อยู่:</td>
-                        <td class="py-2">{{ customer.hq_address }}</td>
-                    </tr>
-                    <tr>
-                        <td
-                            class="py-2 text-gray-600 font-medium">ผู้ติดต่อ:</td>
-                        <td class="py-2">{{ customer.hq_contact_name }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+   <div class="grid grid-cols-12 gap-6">
+       <!-- Customer Info Card (8 columns) -->
+       <div class="col-span-12 lg:col-span-8">
+           <div class="bg-white rounded-lg shadow-md overflow-hidden">
+               <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-3">
+                   <h2 class="text-white text-lg font-semibold">ข้อมูลลูกค้า</h2>  
+               </div>
+               <div class="p-6">
+                   <div class="flex items-start space-x-6">
+                       <!-- Logo Section with improved styling -->
+                       <div class="flex-shrink-0">
+                           {% if customer.logo_mimetype %}
+                               <img src="{{ url_for('get_customer_logo', id=customer.id) }}" 
+                                    alt="{{ customer.name }} logo"
+                                    class="w-32 h-32 object-contain border rounded-lg shadow-sm bg-white p-2 hover:shadow-md transition-shadow duration-200">
+                           {% else %}
+                               <div class="w-32 h-32 flex items-center justify-center border rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 text-gray-400">
+                                   <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                   </svg>
+                               </div>
+                           {% endif %}
+                       </div>
 
-        <!-- Branch Info Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="bg-indigo-600 px-4 py-3">
-                <h2 class="text-white text-lg font-semibold">ข้อมูลสาขา</h2>
-            </div>
-            <div class="p-4">
-                <table class="w-full">
-                    <tr>
-                        <td
-                            class="py-2 text-gray-600 font-medium">ชื่อสาขา:</td>
-                        <td class="py-2">{{ branch.name }}</td>
-                    </tr>
-                    <tr>
-                        <td
-                            class="py-2 text-gray-600 font-medium">รหัสสาขา:</td>
-                        <td class="py-2">{{ branch.branch_code }}</td>
-                    </tr>
-                    <tr>
-                        <td class="py-2 text-gray-600 font-medium">ที่อยู่:</td>
-                        <td class="py-2">{{ branch.address }}</td>
-                    </tr>
-                    <tr>
-                        <td
-                            class="py-2 text-gray-600 font-medium">ผู้ติดต่อ:</td>
-                        <td class="py-2">{{ branch.contact_name }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
+                       <!-- Customer Details with improved spacing -->
+                       <div class="flex-grow">
+                           <table class="w-full">
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium w-1/4">ชื่อลูกค้า:</td>
+                                   <td class="py-2.5 font-medium">{{ customer.name }}</td>
+                               </tr>
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium">เลขประจำตัวผู้เสียภาษี:</td>
+                                   <td class="py-2.5">{{ customer.tax_number or '-' }}</td>
+                               </tr>
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium">ที่อยู่:</td>
+                                   <td class="py-2.5">{{ customer.hq_address or '-' }}</td>
+                               </tr>
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium">ผู้ติดต่อ:</td>
+                                   <td class="py-2.5">{{ customer.hq_contact_name or '-' }}</td>
+                               </tr>
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium">เบอร์โทรศัพท์:</td>
+                                   <td class="py-2.5">{{ customer.hq_contact_phone or '-' }}</td>
+                               </tr>
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium">อีเมล:</td>
+                                   <td class="py-2.5">{{ customer.hq_contact_email or '-' }}</td>
+                               </tr>
+                               {% if customer.website_url %}
+                               <tr>
+                                   <td class="py-2.5 text-gray-600 font-medium">เว็บไซต์:</td>
+                                   <td class="py-2.5">
+                                       <a href="{{ customer.website_url }}" target="_blank"
+                                          class="text-indigo-600 hover:text-indigo-900 hover:underline inline-flex items-center">
+                                           คลิกเพื่อดูรายละเอียดเพิ่มเติม
+                                           <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                           </svg>
+                                       </a>
+                                   </td>
+                               </tr>
+                               {% endif %}
+                           </table>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
 
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="bg-indigo-600 px-4 py-3">
-            <h2 class="text-white text-lg font-semibold">รายการอุปกรณ์</h2>
-        </div>
-        <div class="p-4">
-            {% for machine_type, devices in devices_by_type.items() %}
-            <div class="mb-6 last:mb-0">
-                <h3 class="text-lg font-medium mb-3 text-gray-800">
-                    {{ machine_type }}
-                    <!-- <span class="text-sm text-gray-500 ml-2">({{ devices|length
-                        }} รายการ)</span> -->
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Teamviewer
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Anydesk
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    หมายเหตุ
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    สถานะ
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for device in devices %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4">
-                                    <div class="mb-2">
-                                        <span
-                                            class="text-xs font-medium text-gray-500">ID:</span>
-                                        <span class="ml-1">{{
-                                            device.teamviewer_id }}</span>
-                                    </div>
-                                    <div>
-                                        <span
-                                            class="text-xs font-medium text-gray-500">Password:</span>
-                                        <span class="ml-1">{{
-                                            device.teamviewer_password }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="mb-2">
-                                        <span
-                                            class="text-xs font-medium text-gray-500">ID:</span>
-                                        <span class="ml-1">{{ device.anydesk_id
-                                            }}</span>
-                                    </div>
-                                    <div>
-                                        <span
-                                            class="text-xs font-medium text-gray-500">Password:</span>
-                                        <span class="ml-1">{{
-                                            device.anydesk_password }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ device.note }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        {% if device.status == 'active' %}
-                                            bg-green-100 text-green-800
-                                        {% elif device.status == 'inactive' %}
-                                            bg-red-100 text-red-800
-                                        {% else %}
-                                            bg-yellow-100 text-yellow-800
-                                        {% endif %}">
-                                        {{ device.status }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+       <!-- Branch Info Card (4 columns) -->
+       <div class="col-span-12 lg:col-span-4">
+           <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+               <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-3">
+                   <h2 class="text-white text-lg font-semibold">ข้อมูลสาขา</h2>
+               </div>
+               <div class="p-4">
+                   <table class="w-full text-sm">
+                       <tr>
+                           <td class="py-2 text-gray-600 font-medium w-1/3">สาขา:</td>
+                           <td class="py-2">{{ branch.name or '-' }}</td>
+                       </tr>
+                       <tr>
+                           <td class="py-2 text-gray-600 font-medium">รหัส:</td>
+                           <td class="py-2">{{ branch.branch_code or '-' }}</td>
+                       </tr>
+                       <tr>
+                           <td class="py-2 text-gray-600 font-medium">โทร:</td>
+                           <td class="py-2">{{ branch.contact_phone or '-' }}</td>
+                       </tr>
+                       <tr>
+                           <td class="py-2 text-gray-600 font-medium">อุปกรณ์:</td>
+                           <td class="py-2 font-medium text-indigo-600">{{ active_devices_count }} เครื่อง</td>
+                       </tr>
+                   </table>
+               </div>
+           </div>
+       </div>
+
+       <!-- Devices List (Full width) -->
+       <div class="col-span-12">
+           <div class="bg-white rounded-lg shadow-md overflow-hidden">
+               <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-3">
+                   <h2 class="text-white text-lg font-semibold">รายการอุปกรณ์</h2>
+               </div>
+               <div class="p-6">
+                {% set machine_order = ['Server', 'Cashier', 'Manager', 'Take Order'] %}
+                {% for machine_type in machine_order %}
+                    {% if machine_type in devices_by_type %}
+                    <div class="mb-8 last:mb-0">
+                        <div class="flex items-center mb-4">
+                            <h3 class="text-base font-medium text-gray-800">{{ machine_type }}</h3>
+                            <span class="ml-3 px-3 py-1 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-full">
+                                {{ devices_by_type[machine_type]|length }} เครื่อง
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                            Teamviewer
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                            Anydesk
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                            หมายเหตุ
+                                        </th>
+                                        <!-- <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                            สถานะ
+                                        </th> -->
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for device in devices_by_type[machine_type] %}
+                                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                        <td class="px-6 py-4">
+                                            <div class="space-y-1">
+                                                <p class="text-sm">
+                                                    <span class="font-medium text-gray-500">ID:</span> 
+                                                    {{ device.teamviewer_id or '-' }}
+                                                </p>
+                                                <p class="text-sm">
+                                                    <span class="font-medium text-gray-500">Password:</span> 
+                                                    {{ device.teamviewer_password or '-' }}
+                                                </p>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="space-y-1">
+                                                <p class="text-sm">
+                                                    <span class="font-medium text-gray-500">ID:</span> 
+                                                    {{ device.anydesk_id or '-' }}
+                                                </p>
+                                                <p class="text-sm">
+                                                    <span class="font-medium text-gray-500">Password:</span> 
+                                                    {{ device.anydesk_password or '-' }}
+                                                </p>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm">{{ device.note or '-' }}</td>
+                                        <!-- <td class="px-6 py-4">
+                                            <span class="px-3 py-1 text-sm font-medium rounded-full
+                                                {% if device.status == 'active' %}
+                                                    bg-green-100 text-green-800
+                                                {% elif device.status == 'inactive' %}
+                                                    bg-red-100 text-red-800
+                                                {% else %}
+                                                    bg-yellow-100 text-yellow-800
+                                                {% endif %}">
+                                                {{ device.status }}
+                                            </span>
+                                        </td> -->
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+             </div>
+           </div>
+       </div>
+   </div>
 </div>
 {% endblock %}

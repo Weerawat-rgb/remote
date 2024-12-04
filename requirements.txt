@@ -1,0 +1,6 @@
+pandas
+flask
+flask-migrate
+flask-sqlalchemy
+sqlalchemy
+werkzeug

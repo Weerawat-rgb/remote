@@ -1,10 +1,12 @@
 # Standard library imports
+from waitress import serve
 import logging
 import io
 import os
 import subprocess
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+
 
 
 # Third-party imports
@@ -18,7 +20,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5e3d17fba71924d29490882d7bfb694f23c1a2ae720c2878'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://sa:admin123@nart:1433/RemoteAccessDB?driver=ODBC+Driver+17+for+SQL+Server&charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://info:info123@infosever.thaiddns.com,1451/RemoteAccessDB?driver=ODBC+Driver+17+for+SQL+Server&charset=utf8'
 app.config['JSON_AS_ASCII'] = False
 
 # UTF-8 configuration
@@ -64,6 +66,8 @@ class Customer(db.Model):
     hq_contact_email = db.Column(db.Unicode(120))
     hq_address = db.Column(db.Unicode(500))
     tax_number = db.Column(db.Unicode(100), nullable=True)
+    notes = db.Column(db.Text)
+    website_url = db.Column(db.String(255))
     isactive = db.Column(db.Boolean, nullable = False, default=True)
     branches = db.relationship('Branch', backref='customer', lazy=True)
     @property
@@ -77,10 +81,8 @@ class Branch(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('Customers.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     branch_code = db.Column(db.String(100))
-    address = db.Column(db.String(200))
-    contact_name = db.Column(db.String(100))
     contact_phone = db.Column(db.String(20))
-    contact_email = db.Column(db.String(100))
+    notes = db.Column(db.Text)
     devices = db.relationship('Device', backref='branch', lazy=True)
     isactive = db.Column(db.Boolean, nullable=True, default=True)
 
@@ -156,7 +158,10 @@ def get_customer(customer_id):
         'hq_address': customer.hq_address,
         'has_logo': customer.logo is not None,  
         'tax_number': customer.tax_number,  
+        'notes': customer.notes,  
+        'website_url': customer.website_url,  
         'logo_mimetype': customer.logo_mimetype if customer.logo else None
+        
     })
     
 @app.route('/customer-logo/<int:customer_id>')
@@ -208,6 +213,8 @@ def add_customer():
             hq_contact_email = request.form.get('hq_contact_email')
             hq_address = request.form.get('hq_address')
             tax_number = request.form.get('tax_number')
+            notes = request.form.get('notes')
+            website_url = request.form.get('website_url')
             
             # รับไฟล์ logo
             logo_file = request.files.get('logo')
@@ -223,7 +230,9 @@ def add_customer():
                 hq_contact_phone=hq_contact_phone,
                 hq_contact_email=hq_contact_email,
                 hq_address=hq_address,
-                tax_number=tax_number
+                tax_number=tax_number,
+                notes=notes,
+                website_url=website_url
             )
 
             # ถ้ามีการอัพโหลด logo
@@ -262,6 +271,8 @@ def update_customer(customer_id):
         customer.hq_contact_email = request.form.get('hq_contact_email', customer.hq_contact_email)
         customer.hq_address = request.form.get('hq_address', customer.hq_address)
         customer.tax_number = request.form.get('tax_number', customer.tax_number)
+        customer.notes = request.form.get('notes', customer.notes)
+        customer.website_url = request.form.get('website_url', customer.website_url)
         
         # Handle logo update if file is provided
         if 'logo' in request.files:
@@ -322,83 +333,67 @@ def delete_customer(id):
             'message': f'เกิดข้อผิดพลาดในการปิดการใช้งานลูกค้า: {str(e)}'
         }), 500
                 
-@app.route('/api/branches', methods=['POST'])
+@app.route('/api/branches/add', methods=['POST'])
 def add_branch():
     try:
+        # Debug: print request data
+        print("Received request data:", request.get_json())
+        
         data = request.get_json()
-        app.logger.info(f"Received data: {data}")
-        
-        # ตรวจสอบข้อมูลที่จำเป็น
-        required_fields = {
-            'name': 'ชื่อสาขา',
-            'customer_id': 'รหัสลูกค้า',
-            'branch_code': 'รหัสสาขา'
-        }
-        
-        missing_fields = []
-        for field, label in required_fields.items():
-            if not data.get(field):
-                missing_fields.append(label)
-        
-        if missing_fields:
+        if not data:
             return jsonify({
                 'success': False,
-                'message': f'กรุณากรอก: {", ".join(missing_fields)}'
+                'message': 'ไม่พบข้อมูลที่ส่งมา'
             }), 400
 
-        # ตรวจสอบ customer_id
-        customer = db.session.get(Customer, data['customer_id'])
-        if not customer:
+        # Validate required fields
+        if not data.get('name'):
             return jsonify({
                 'success': False,
-                'message': 'ไม่พบข้อมูลลูกค้า'
-            }), 404
-
-        # ตรวจสอบ branch_code ซ้ำ
-        existing_branch = Branch.query.filter_by(
-            branch_code=data['branch_code'], 
-            isactive=True
-        ).first()
-        
-        if existing_branch:
-            return jsonify({
-                'success': False,
-                'message': 'รหัสสาขานี้มีอยู่ในระบบแล้ว'
+                'message': 'กรุณาระบุชื่อสาขา'
             }), 400
 
-        # สร้าง Branch ใหม่
+        if not data.get('customer_id'):
+            return jsonify({
+                'success': False,
+                'message': 'ไม่พบรหัสลูกค้า'
+            }), 400
+
+        # Create new branch
         new_branch = Branch(
             customer_id=data['customer_id'],
             name=data['name'],
-            branch_code=data['branch_code'],
-            contact_name=data.get('contact_name'),
-            contact_phone=data.get('contact_phone'),
-            address=data.get('address'),
+            branch_code=data.get('branch_code', ''),
+            contact_phone=data.get('contact_phone', ''),
+            notes=data.get('notes', ''),
             isactive=True
         )
         
+        # Debug: print new branch data
+        print("Creating new branch:", {
+            'customer_id': new_branch.customer_id,
+            'name': new_branch.name,
+            'branch_code': new_branch.branch_code,
+            'contact_phone': new_branch.contact_phone,
+            'notes': new_branch.notes
+        })
+        
         db.session.add(new_branch)
         db.session.commit()
-
+        
         return jsonify({
             'success': True,
-            'message': 'เพิ่มสาขาเรียบร้อยแล้ว',
-            'data': {
-                'id': new_branch.id,
-                'name': new_branch.name,
-                'branch_code': new_branch.branch_code,
-                'customer_id': new_branch.customer_id
-            }
+            'message': 'เพิ่มสาขาเรียบร้อยแล้ว'
         })
-
+        
     except Exception as e:
+        print("Error occurred:", str(e))  # Debug log
         db.session.rollback()
-        app.logger.error(f"Error adding branch: {str(e)}")
         return jsonify({
             'success': False,
-            'message': 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'
-        }), 500
-                       
+            'message': f'เกิดข้อผิดพลาด: {str(e)}'
+        }), 400
+                                       
 @app.route('/api/branches/<int:branch_id>', methods=['DELETE'])
 def delete_branch(branch_id):
    try:
@@ -567,23 +562,6 @@ def get_device_detail(branch_id, machine_type):
             'message': str(e)
         }), 500
         
-@app.route('/api/check-anydesk-status/<anydesk_id>')
-def check_anydesk_status(anydesk_id):
-    try:
-        # ใช้ subprocess เรียก AnyDesk CLI command
-        result = subprocess.run(['anydesk', '--status', anydesk_id], capture_output=True, text=True)
-        is_online = 'online' in result.stdout.lower()
-        
-        return jsonify({
-            'success': True,
-            'is_online': is_online
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        })
-        
 @app.route('/api/branches/<int:branch_id>/devices/<machine_type>', methods=['DELETE'])
 def delete_device(branch_id, machine_type):
     try:
@@ -627,55 +605,81 @@ def view_branches(customer_id):
     branches = Branch.query.filter_by(customer_id=customer_id).all()
     return render_template('view_branch.html', customer=customer, branches=branches)
 
-@app.route('/branches')
-def get_branches():
-    branches = db.session.query(Branch).filter(Branch.isactive == 1).all()    # ดึงข้อมูลเครื่องของแต่ละสาขา
-    for branch in branches:
-        devices = db.session.query(Device).filter(
-            Device.branch_id == branch.id,
-            Device.isactive == 1
-        ).all()
-        branch.devices = devices
-    return render_template('branches.html', branches=branches)
-
-    
-@app.route('/api/branches/<int:branch_id>', methods=['PUT'])
-def edit_branch(branch_id):
+@app.route('/api/branches/remote/<int:branch_id>', methods=['GET'])
+def get_branch(branch_id):
     try:
-        # เปลี่ยนจาก .query.get() เป็น db.session.get()
-        branch = db.session.get(Branch, branch_id)
-        if not branch:
-            return jsonify({
-                'success': False,
-                'message': 'ไม่พบข้อมูลสาขา'
-            }), 404
-
-        data = request.json
-        if not data:
-            return jsonify({
-                'success': False,
-                'message': 'ไม่พบข้อมูลที่ต้องการอัพเดท'
-            }), 400
-
-        branch.name = data.get('name', branch.name)
-        branch.contact_name = data.get('contact_name', branch.contact_name)
-        branch.contact_phone = data.get('contact_phone', branch.contact_phone)
-        branch.address = data.get('address', branch.address)
-
-        db.session.commit()
-
+        branch = Branch.query.get_or_404(branch_id)
+        
+        # เตรียมข้อมูลอุปกรณ์
+        devices_data = []
+        for device in branch.devices:
+            if device.isactive:  # ดึงเฉพาะอุปกรณ์ที่ยังใช้งานอยู่
+                devices_data.append({
+                    'id': device.id,
+                    'machine_type': device.machine_type,
+                    'teamviewer_id': device.teamviewer_id,
+                    'teamviewer_pwd': device.teamviewer_pwd,
+                    'anydesk_id': device.anydesk_id,
+                    'anydesk_pwd': device.anydesk_pwd,
+                    'notes': device.notes
+                })
+        
         return jsonify({
             'success': True,
-            'message': 'อัพเดทข้อมูลสาขาเรียบร้อยแล้ว'
+            'id': branch.id,
+            'name': branch.name,
+            'branch_code': branch.branch_code,
+            'devices': devices_data
         })
-
+        
     except Exception as e:
+        print('Error:', str(e))  # Debug log
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+    
+@app.route('/api/branches/<int:branch_id>', methods=['PUT'])
+def update_branch(branch_id):
+    try:
+        data = request.get_json()
+        # print("Received data:", data)  # Debug log
+        
+        branch = Branch.query.get_or_404(branch_id)
+        # print("Found branch:", branch.id, branch.name)  # Debug log
+        
+        if 'branch_code' in data:
+            branch.branch_code = data['branch_code']
+        if 'name' in data and data['name']:  
+            branch.name = data['name']
+        if 'contact_phone' in data:
+            branch.contact_phone = data['contact_phone']
+        if 'notes' in data:
+            branch.notes = data['notes']
+        
+        # print("Updated branch data:", {  # Debug log
+        #     'id': branch.id,
+        #     'name': branch.name,
+        #     'branch_code': branch.branch_code,
+        #     'contact_phone': branch.contact_phone
+        # })
+        
+        db.session.commit()
+        # print("Database committed successfully")  # Debug log
+        
+        return jsonify({
+            'success': True,
+            'message': 'อัพเดทข้อมูลสำเร็จ'
+        })
+        
+    except Exception as e:
+        print("Error occurred:", str(e))  # Debug log
         db.session.rollback()
         return jsonify({
             'success': False,
             'message': f'เกิดข้อผิดพลาด: {str(e)}'
         }), 500
-        
+                        
 @app.route('/api/branches/<int:customer_id>/export')
 def export_branches(customer_id):
     try:
@@ -836,24 +840,38 @@ def get_branch_template():
         
 @app.route('/summary/<int:customer_id>/<int:branch_id>')
 def summary(customer_id, branch_id):
-    customer = Customer.query.get_or_404(customer_id)
-    branch = Branch.query.get_or_404(branch_id)
-    
-    # ดึงข้อมูล devices และจัดกลุ่มตาม machine_type
-    devices = (Device.query
-              .filter_by(branch_id=branch_id, isactive=True)
-              .all())
-    
-    # จัดกลุ่มอุปกรณ์ตาม machine_type
-    devices_by_type = {}
-    for device in devices:
-        if device.machine_type not in devices_by_type:
-            devices_by_type[device.machine_type] = []
-        devices_by_type[device.machine_type].append(device)
-    
-    return render_template('summary.html', 
-                         customer=customer, 
-                         branch=branch,
-                         devices_by_type=devices_by_type)
+    try:
+        customer = Customer.query.get_or_404(customer_id)
+        branch = Branch.query.get_or_404(branch_id)
+        
+        # นับจำนวนอุปกรณ์ที่ active
+        active_devices_count = Device.query.filter_by(
+            branch_id=branch_id, 
+            isactive=True
+        ).count()
+        
+        # ดึงข้อมูล devices และจัดกลุ่มตาม machine_type
+        devices = (Device.query
+                  .filter_by(branch_id=branch_id, isactive=True)
+                  .all())
+        
+        devices_by_type = {}
+        for device in devices:
+            if device.machine_type not in devices_by_type:
+                devices_by_type[device.machine_type] = []
+            devices_by_type[device.machine_type].append(device)
+        
+        return render_template('summary.html', 
+                             customer=customer, 
+                             branch=branch,
+                             devices_by_type=devices_by_type,
+                             active_devices_count=active_devices_count)
+                             
+    except Exception as e:
+        print(f"Error in summary route: {str(e)}")
+        return render_template('error.html', 
+                             error_message="เกิดข้อผิดพลาดในการโหลดข้อมูล",
+                             details=str(e)), 500
+            
 if __name__ == '__main__':
-    app.run(debug=True)
+    serve(app, host='0.0.0.0', port=8080)
