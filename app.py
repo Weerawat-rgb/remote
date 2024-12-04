@@ -7,8 +7,6 @@ import subprocess
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
-
-
 # Third-party imports
 import pandas as pd
 from flask import Flask, flash, jsonify, redirect, render_template, request, send_file, url_for
