@@ -34,16 +34,42 @@
                 Export
             </button>
 
-            <input type="hidden" id="customer-id" value="{{ customer.id }}">
-            <label
+            <div class="relative">
+                <!-- Toast Provider -->
+                <div class="relative">
+                    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+                </div>
+
+                <!-- ส่วนอื่นๆ ของหน้าเว็บ -->
+                <input type="file" id="fileInput" accept=".xlsx" style="display: none" />
+                <button onclick="triggerFileInput()"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Import
+                </button>
+            </div>
+
+            <!-- เพิ่ม loading spinner (ซ่อนไว้ตอนเริ่มต้น) -->
+            <div id="loadingSpinner"
+                class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+            </div>
+
+            <!-- <input type="hidden" id="customer-id" value="{{ customer.id }}"> -->
+            <!-- <label
                 class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded flex items-center cursor-pointer">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
                 Import
-                <input type="file" id="importFile" accept=".xlsx" class="hidden" onchange="importBranches(this)">
-            </label>
+                <input type="hidden" id="customer-id"> -->
+            <!-- <input type="file" accept=".xlsx" onchange="importBranches(this)"> -->
+            <!-- <input type="file" id="importFile" accept=".xlsx" class="hidden" onchange="importBranches(this)">
+            </label> -->
         </div>
     </div>
     <!-- Branches List -->
@@ -89,9 +115,12 @@
                         <span class="text-gray-400">-</span>
                         {% endif %}
                     </td>
-                    <td class="px-4 py-3 text-sm" data-contact-phone="{{ branch.contact_phone }}">{{
-                        branch.contact_phone }}</td>
-                    <td class="px-4 py-3 text-sm break-words" data-notes="{{ branch.notes }}">{{ branch.notes }}</td>
+                    <td class="px-4 py-3 text-sm" data-contact-phone="{{ branch.contact_phone | default('', true) }}">
+                        {{ branch.contact_phone | default('', true) }}
+                    </td>
+                    <td class="px-4 py-3 text-sm break-words" data-notes="{{ branch.notes | default('', true) }}">
+                        {{ branch.notes | default('', true) }}
+                    </td>
                     <td class="px-4 py-3 text-sm">
                         <a href="{{ url_for('summary', customer_id=branch.customer_id, branch_id=branch.id) }}"
                             class="inline-flex items-center px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-900 rounded-md hover:bg-indigo-50 transition-colors duration-200">
@@ -280,6 +309,8 @@
                     <option value="Manager">Manager</option>
                     <option value="Take Order">Take Order</option>
                     <option value="Server">Server</option>
+                    <option value="Server">Kiosk</option>
+                    <option value="Server">KDS</option>
                 </select>
             </div>
 
@@ -430,47 +461,39 @@
         }
     }
 
+    // function clearRemoteForm() {
+    //     // เคลียร์ค่า branch_id
+    //     document.getElementById('remote_branch_id').value = '';
+
+    //     // เคลียร์ machine type กลับไปค่าเริ่มต้น
+    //     const machineTypeSelect = document.getElementById('remote_machine_type');
+    //     machineTypeSelect.value = machineTypeSelect.options[0].value;
+
+    //     // เคลียร์ค่าทุกฟิลด์ให้ว่าง
+    //     document.getElementById('remote_teamviewer_id').value = '';
+    //     document.getElementById('remote_teamviewer_pwd').value = '';
+    //     document.getElementById('remote_anydesk_id').value = '';
+    //     document.getElementById('remote_anydesk_pwd').value = '';
+    //     document.getElementById('remote_notes').value = '';
+    // }
+
     function openRemoteModal(branchId) {
         console.log('Opening remote modal for branch:', branchId);
         document.getElementById('remote_branch_id').value = branchId;
 
-        // เปลี่ยนจาก /api/branches/${branchId} เป็น /api/branches/remote/${branchId}
-        fetch(`/api/branches/remote/${branchId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received data:', data);
-                const deviceData = data.devices && data.devices.length > 0 ? data.devices[0] : null;
+        // เคลียร์ค่าทุกฟิลด์ให้ว่าง
+        const machineTypeSelect = document.getElementById('remote_machine_type');
+        machineTypeSelect.value = machineTypeSelect.options[0].value;
+        document.getElementById('remote_teamviewer_id').value = '';
+        document.getElementById('remote_teamviewer_pwd').value = '';
+        document.getElementById('remote_anydesk_id').value = '';
+        document.getElementById('remote_anydesk_pwd').value = '';
+        document.getElementById('remote_notes').value = '';
 
-                const machineTypeSelect = document.getElementById('remote_machine_type');
-                if (deviceData) {
-                    machineTypeSelect.value = deviceData.machine_type || machineTypeSelect.options[0].value;
-                    document.getElementById('remote_teamviewer_id').value = deviceData.teamviewer_id || '';
-                    document.getElementById('remote_teamviewer_pwd').value = deviceData.teamviewer_pwd || '';
-                    document.getElementById('remote_anydesk_id').value = deviceData.anydesk_id || '';
-                    document.getElementById('remote_anydesk_pwd').value = deviceData.anydesk_pwd || '';
-                    document.getElementById('remote_notes').value = deviceData.notes || '';
-                } else {
-                    machineTypeSelect.value = machineTypeSelect.options[0].value;
-                    document.getElementById('remote_teamviewer_id').value = '';
-                    document.getElementById('remote_teamviewer_pwd').value = '';
-                    document.getElementById('remote_anydesk_id').value = '';
-                    document.getElementById('remote_anydesk_pwd').value = '';
-                    document.getElementById('remote_notes').value = '';
-                }
-
-                const modal = document.getElementById('remoteModal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการโหลดข้อมูลรีโมท');
-            });
+        // แสดง Modal
+        const modal = document.getElementById('remoteModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
     // Function สำหรับบันทึกข้อมูล Device
     function saveRemote() {
@@ -517,10 +540,10 @@
                 alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
             });
     }
-
     function closeRemoteModal() {
-        document.getElementById('remoteModal').classList.add('hidden');
-        document.getElementById('remoteModal').classList.remove('flex');
+        const modal = document.getElementById('remoteModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 
     function openAddBranchModal() {
@@ -648,8 +671,145 @@
 
     function exportBranches() {
         const customerId = '{{ customer.id }}'; // รับค่า customer ID จาก template
-        window.location.href = `/api/branches/${customerId}/export`;
+        window.location.href = `/api/branches/devices/export/${customerId}/export`;
     }
+    function triggerFileInput() {
+        document.getElementById('fileInput').click();
+    }
+
+    async function importBranches(event) {
+        const customerId = '{{ customer.id }}';
+        const fileInput = document.getElementById('fileInput');
+
+        try {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('กรุณาเลือกไฟล์');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch(`/api/branches/devices/import/${customerId}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                if (result.errors) {
+                    alert('พบข้อผิดพลาด:\n\n' + result.errors.join('\n'));
+                } else {
+                    alert(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
+                }
+                return;
+            }
+
+            alert(result.message);
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Import failed:', error);
+            alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
+        } finally {
+            fileInput.value = '';
+        }
+    }
+
+    // เพิ่ม event listener สำหรับ file input
+    document.getElementById('fileInput').addEventListener('change', importBranches);
+
+
+    // ฟังก์ชันสำหรับแสดง toast notification
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+
+        const toast = document.createElement('div');
+        toast.className = `rounded-md px-6 py-4 text-sm font-medium text-white shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                    type === 'info' ? 'bg-blue-500' : 'bg-gray-500'
+            }`;
+
+        // สร้าง flex container สำหรับ icon และ message
+        const content = document.createElement('div');
+        content.className = 'flex items-center';
+
+        // เพิ่ม loading spinner ถ้าเป็น info toast
+        if (type === 'info') {
+            const spinner = document.createElement('div');
+            spinner.className = 'animate-spin mr-2 h-4 w-4 text-white';
+            spinner.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        `;
+            content.appendChild(spinner);
+        }
+
+        const text = document.createElement('span');
+        text.textContent = message;
+        content.appendChild(text);
+
+        toast.appendChild(content);
+        container.appendChild(toast);
+
+        // Animation
+        setTimeout(() => toast.style.opacity = '0', 3000);
+        setTimeout(() => container.removeChild(toast), 3500);
+    }
+
+    async function importBranches(event) {
+        const customerId = '{{ customer.id }}';
+        const fileInput = document.getElementById('fileInput');
+
+        try {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast('กรุณาเลือกไฟล์', 'error');
+                return;
+            }
+
+            // แสดง loading toast
+            showToast('กำลังนำเข้าข้อมูล...', 'info');
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch(`/api/branches/devices/import/${customerId}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                if (result.errors) {
+                    showToast('พบข้อผิดพลาด', 'error');
+                    alert('พบข้อผิดพลาด:\n\n' + result.errors.join('\n'));
+                } else {
+                    showToast(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
+                }
+                return;
+            }
+
+            // แสดง success toast
+            showToast(result.message, 'success');
+
+            // รีเฟรชหน้าเว็บหลังจาก toast แสดงเสร็จ
+            setTimeout(() => window.location.reload(), 3500);
+
+        } catch (error) {
+            console.error('Import failed:', error);
+            showToast('เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
+        } finally {
+            fileInput.value = '';
+        }
+    }
+
+    // เพิ่ม event listener สำหรับ file input
+    document.getElementById('fileInput').addEventListener('change', importBranches);
+
 
     // ฟังก์ชันสำหรับแสดง toast notification
     function showToast() {
@@ -685,60 +845,48 @@
         }, 3000);
     }
 
-    function importBranches(input) {
-        const file = input.files[0];
-        if (!file) {
-            console.log("No file selected");
-            return;
-        }
 
-        console.log("File selected:", file.name);
-
-        const customerId = document.getElementById('customer-id').value;
-        console.log("Customer ID:", customerId);
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        // แสดง loading
+    // Utility function สำหรับแสดง toast
+    function showToast(icon, text) {
         Swal.fire({
-            title: 'กำลังนำเข้าข้อมูล...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+            toast: true,
+            icon: icon,
+            title: text,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
         });
-
-        fetch(`/api/branches/${customerId}/import`, {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                console.log("Response status:", response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log("Response data:", data);
-                Swal.close();
-
-                if (data.success) {
-                    showToast('success', data.message);
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    showToast('error', data.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.close();
-                showToast('error', 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
-            });
     }
+    async function downloadTemplate() {
+        try {
+            const response = await fetch('/api/branches/devices/template');
 
-    function downloadTemplate() {
-        window.location.href = '/api/branches/template';
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // รับ blob จาก response
+            const blob = await response.blob();
+
+            // สร้าง URL สำหรับ blob
+            const url = window.URL.createObjectURL(blob);
+
+            // สร้าง element a เพื่อดาวน์โหลด
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'device_import_template.xlsx';
+            document.body.appendChild(a);
+            a.click();
+
+            // cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('เกิดข้อผิดพลาดในการดาวน์โหลด Template');
+        }
     }
 
     function showDeviceDetail(branchId, machineType) {

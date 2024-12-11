@@ -677,125 +677,32 @@ def update_branch(branch_id):
             'success': False,
             'message': f'เกิดข้อผิดพลาด: {str(e)}'
         }), 500
-                        
-@app.route('/api/branches/<int:customer_id>/export')
-def export_branches(customer_id):
-    try:
-        # ดึงข้อมูลสาขาที่ active
-        branches = Branch.query.filter_by(customer_id=customer_id, isactive=1).all()
-        
-        # สร้าง DataFrame
-        data = []
-        for branch in branches:
-            data.append({
-                'รหัสสาขา': branch.branch_code,
-                'ชื่อสาขา': branch.name,
-                # 'ชื่อผู้ติดต่อ': branch.contact_name,
-                'เบอร์โทร': branch.contact_phone
-            })
-        
-        df = pd.DataFrame(data)
-        
-        # สร้าง Excel file ใน memory
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='Branches')
-        output.seek(0)
-        
-        return send_file(
-            output,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            as_attachment=True,
-            download_name=f'branches_{customer_id}.xlsx'
-        )
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': str(e)
-        }), 500
 
-@app.route('/api/branches/<int:customer_id>/import', methods=['POST'])
-def import_branches(customer_id):
-    try:
-        if 'file' not in request.files:
-            print("No file in request")
-            return jsonify({
-                'success': False,
-                'message': 'ไม่พบไฟล์ที่อัพโหลด'
-            }), 400
-            
-        file = request.files['file']
-        if file.filename == '':
-            print("No filename")
-            return jsonify({
-                'success': False,
-                'message': 'ไม่ได้เลือกไฟล์'
-            }), 400
-            
-        # อ่านไฟล์ Excel และแสดงข้อมูลเพื่อ debug
-        df = pd.read_excel(file)
-        print("DataFrame contents:")
-        print(df)
-        print("DataFrame columns:", df.columns.tolist())
-        
-        # ตรวจสอบคอลัมน์ที่จำเป็น
-        required_columns = ['รหัสสาขา', 'ชื่อสาขา']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        if missing_columns:
-            print(f"Missing columns: {missing_columns}")
-            return jsonify({
-                'success': False,
-                'message': f'คอลัมน์ที่จำเป็นไม่ครบ: {", ".join(missing_columns)}'
-            }), 400
-            
-        # นำเข้าข้อมูลและแสดงแต่ละรายการ
-        for _, row in df.iterrows():
-            print("Processing row:", row.to_dict())
-            branch = Branch(
-                customer_id=customer_id,
-                branch_code=str(row['รหัสสาขา']),  # แปลงเป็น string
-                name=str(row['ชื่อสาขา']),  # แปลงเป็น string
-                contact_name=str(row['ชื่อผู้ติดต่อ']) if pd.notna(row['ชื่อผู้ติดต่อ']) else '',
-                contact_phone=str(row['เบอร์โทร']) if pd.notna(row['เบอร์โทร']) else '',
-                isactive=1
-            )
-            print("Created branch object:", vars(branch))
-            db.session.add(branch)
-            
-        db.session.commit()
-        print("Commit successful")
-        
-        return jsonify({
-            'success': True,
-            'message': 'นำเข้าข้อมูลสำเร็จ'
-        })
-        
-    except Exception as e:
-        print("Error occurred:", str(e))
-        print("Error type:", type(e))
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': f'เกิดข้อผิดพลาด: {str(e)}'
-        }), 500                
-                
-@app.route('/api/branches/template')
-def get_branch_template():
+@app.route('/api/branches/devices/template', methods=['GET'])
+def get_device_template():
     try:
         # สร้าง DataFrame ว่างพร้อมคอลัมน์
         df = pd.DataFrame(columns=[
             'รหัสสาขา',
-            'ชื่อสาขา',
-            'ชื่อผู้ติดต่อ',
-            'เบอร์โทร'
+            'ชื่อสาขา', 
+            'ประเภทเครื่อง',
+            'TeamViewer ID',
+            'TeamViewer Password',
+            'AnyDesk ID',
+            'AnyDesk Password',
+            'หมายเหตุ'
         ])
         
         # เพิ่มตัวอย่างข้อมูล 1 แถว
         df.loc[0] = [
-            'B001',  # ตัวอย่างรหัสสาขา
-            'สาขาตัวอย่าง',  # ตัวอย่างชื่อสาขา
-            'ชื่อผู้ติดต่อ',  # ตัวอย่างชื่อผู้ติดต่อ
-            '02-xxx-xxxx'  # ตัวอย่างเบอร์โทร
+            'B001',  # รหัสสาขา
+            'สาขาตัวอย่าง',  # ชื่อสาขา
+            'Cashier, Manager, Take Order, Server, Kioks, KDS',  # ประเภทเครื่อง
+            '123456789',  # TeamViewer ID
+            'password123',  # TeamViewer Password
+            '987654321',  # AnyDesk ID
+            'password321',  # AnyDesk Password
+            'ตัวอย่างหมายเหตุ'  # หมายเหตุ
         ]
         
         # สร้าง Excel file ใน memory
@@ -806,7 +713,7 @@ def get_branch_template():
             
             # ปรับความกว้างคอลัมน์
             worksheet = writer.sheets['Template']
-            worksheet.set_column('A:D', 20)  # ตั้งความกว้างคอลัมน์ A ถึง D เป็น 20
+            worksheet.set_column('A:H', 20)
             
             # จัด format
             workbook = writer.book
@@ -827,7 +734,7 @@ def get_branch_template():
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
-            download_name='branch_import_template.xlsx'
+            download_name='device_import_template.xlsx'
         )
         
     except Exception as e:
@@ -835,6 +742,281 @@ def get_branch_template():
             'success': False,
             'message': str(e)
         }), 500
+
+@app.route('/api/branches/devices/export/<int:customer_id>/export')
+def export_branch_devices(customer_id):
+    try:
+        # Query devices data with customer_id filter
+        query = """
+            SELECT 
+                b.branch_code as 'รหัสสาขา',
+                b.name as 'ชื่อสาขา',
+                d.machine_type as 'ประเภทเครื่อง',
+                d.teamviewer_id as 'TeamViewer ID',
+                d.teamviewer_pwd as 'TeamViewer Password',
+                d.anydesk_id as 'AnyDesk ID',
+                d.anydesk_pwd as 'AnyDesk Password',
+                d.notes as 'หมายเหตุ'
+            FROM branches b
+            INNER JOIN Devices d ON d.branch_id = b.id
+            WHERE b.isactive = 1 
+            AND d.isactive = 1
+            AND b.customer_id = :customer_id
+            ORDER BY b.name
+        """
+        
+        # สร้าง DataFrame จาก query result
+        from sqlalchemy import text
+        df = pd.read_sql(text(query), db.engine, params={'customer_id': customer_id})
+        
+        # ถ้าไม่มีข้อมูล ให้สร้าง empty DataFrame with columns
+        if len(df) == 0:
+            df = pd.DataFrame(columns=[
+                'รหัสสาขา', 'ชื่อสาขา', 'ประเภทเครื่อง', 
+                'TeamViewer ID', 'TeamViewer Password',
+                'AnyDesk ID', 'AnyDesk Password', 'หมายเหตุ'
+            ])
+        
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            # Write DataFrame to Excel
+            df.to_excel(writer, index=False, sheet_name='Devices')
+            
+            # Adjust column widths
+            worksheet = writer.sheets['Devices']
+            worksheet.set_column('A:B', 20)  # Branch code and name
+            worksheet.set_column('C:C', 15)  # Machine type
+            worksheet.set_column('D:G', 25)  # TeamViewer and AnyDesk info
+            worksheet.set_column('H:H', 30)  # Notes
+            
+            # Format headers
+            workbook = writer.book
+            header_format = workbook.add_format({
+                'bold': True,
+                'font_color': 'white',
+                'bg_color': '#4B5563',
+                'border': 1
+            })
+            
+            # Apply header format
+            for col_num, value in enumerate(df.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+        
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'customer_{customer_id}_devices.xlsx'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+        
+@app.route('/api/branches/devices/import/<int:customer_id>', methods=['POST'])
+def import_branch_devices(customer_id):
+    try:
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'message': 'ไม่พบไฟล์ที่อัพโหลด'
+            }), 400
+
+        file = request.files['file']
+        if not file.filename.endswith('.xlsx'):
+            return jsonify({
+                'success': False,
+                'message': 'กรุณาอัพโหลดไฟล์ Excel (.xlsx) เท่านั้น'
+            }), 400
+
+        # ตรวจสอบว่า customer_id มีอยู่จริง
+        customer = db.session.query(Customer).filter_by(
+            id=customer_id,
+            isactive=True
+        ).first()
+        
+        if not customer:
+            return jsonify({
+                'success': False,
+                'message': 'ไม่พบข้อมูลลูกค้า'
+            }), 404
+
+        # อ่านไฟล์ Excel
+        df = pd.read_excel(file)
+        
+        # ตรวจสอบ columns ที่จำเป็น
+        required_columns = [
+            'รหัสสาขา',
+            'ชื่อสาขา', 
+            'ประเภทเครื่อง',
+            'TeamViewer ID',
+            'TeamViewer Password',
+            'AnyDesk ID',
+            'AnyDesk Password',
+            'หมายเหตุ'
+        ]
+        
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return jsonify({
+                'success': False,
+                'message': f'ไม่พบคอลัมน์ที่จำเป็น: {", ".join(missing_columns)}'
+            }), 400
+
+        # ตรวจสอบความถูกต้องของข้อมูล
+        errors = []
+        for idx, row in df.iterrows():
+            row_num = idx + 2  # +2 เพราะ Excel เริ่มที่ 1 และมี header 1 แถว
+            
+            # ตรวจสอบรหัสสาขา
+            if pd.isna(row['รหัสสาขา']) or str(row['รหัสสาขา']).strip() == '':
+                errors.append(f'แถวที่ {row_num}: รหัสสาขาไม่สามารถเป็นค่าว่างได้')
+                continue
+
+            # ตรวจสอบชื่อสาขา
+            if pd.isna(row['ชื่อสาขา']) or str(row['ชื่อสาขา']).strip() == '':
+                errors.append(f'แถวที่ {row_num}: ชื่อสาขาไม่สามารถเป็นค่าว่างได้')
+                continue
+
+        if errors:
+            return jsonify({
+                'success': False,
+                'message': 'พบข้อผิดพลาดในไฟล์',
+                'errors': errors
+            }), 400
+
+        # อัพเดตข้อมูลในฐานข้อมูล
+        success_count = 0
+        new_branch_count = 0
+        
+        for _, row in df.iterrows():
+            # ค้นหาสาขา
+            branch = db.session.query(Branch).filter_by(
+                branch_code=str(row['รหัสสาขา']).strip(),
+                customer_id=customer_id,
+                isactive=True
+            ).first()
+            
+            # ถ้าไม่พบสาขา ให้สร้างใหม่
+            if not branch:
+                branch = Branch(
+                    customer_id=customer_id,
+                    branch_code=str(row['รหัสสาขา']).strip(),
+                    name=str(row['ชื่อสาขา']).strip(),
+                    isactive=True
+                )
+                db.session.add(branch)
+                db.session.flush()  # เพื่อให้ได้ branch.id
+                new_branch_count += 1
+            
+            # สร้าง Device ใหม่ทุกครั้ง
+            device = Device(
+                branch_id=branch.id,
+                isactive=True
+            )
+            db.session.add(device)
+
+            # อัพเดตข้อมูล Device โดยตัดช่องว่างออกจาก ID อัตโนมัติ
+            device.machine_type = str(row['ประเภทเครื่อง']).strip() if pd.notna(row['ประเภทเครื่อง']) else None
+            
+            # ตัดช่องว่างออกจาก TeamViewer ID
+            if pd.notna(row['TeamViewer ID']):
+                device.teamviewer_id = str(row['TeamViewer ID']).replace(' ', '')
+            else:
+                device.teamviewer_id = None
+                
+            device.teamviewer_pwd = str(row['TeamViewer Password']).strip() if pd.notna(row['TeamViewer Password']) else None
+            
+            # ตัดช่องว่างออกจาก AnyDesk ID
+            if pd.notna(row['AnyDesk ID']):
+                device.anydesk_id = str(row['AnyDesk ID']).replace(' ', '')
+            else:
+                device.anydesk_id = None
+                
+            device.anydesk_pwd = str(row['AnyDesk Password']).strip() if pd.notna(row['AnyDesk Password']) else None
+            device.notes = str(row['หมายเหตุ']).strip() if pd.notna(row['หมายเหตุ']) else None
+            
+            success_count += 1
+        # Commit การเปลี่ยนแปลงทั้งหมด
+        db.session.commit()
+
+        message = f'นำเข้าข้อมูลสำเร็จ {success_count} รายการ'
+        if new_branch_count > 0:
+            message += f' (สร้างสาขาใหม่ {new_branch_count} สาขา)'
+
+        return jsonify({
+            'success': True,
+            'message': message
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'เกิดข้อผิดพลาด: {str(e)}'
+        }), 500                        
+                                
+# @app.route('/api/branches/template')
+# def get_branch_template():
+#     try:
+#         # สร้าง DataFrame ว่างพร้อมคอลัมน์
+#         df = pd.DataFrame(columns=[
+#             'รหัสสาขา',
+#             'ชื่อสาขา',
+#             'ชื่อผู้ติดต่อ',
+#             'เบอร์โทร'
+#         ])
+        
+#         # เพิ่มตัวอย่างข้อมูล 1 แถว
+#         df.loc[0] = [
+#             'B001',  # ตัวอย่างรหัสสาขา
+#             'สาขาตัวอย่าง',  # ตัวอย่างชื่อสาขา
+#             'ชื่อผู้ติดต่อ',  # ตัวอย่างชื่อผู้ติดต่อ
+#             '02-xxx-xxxx'  # ตัวอย่างเบอร์โทร
+#         ]
+        
+#         # สร้าง Excel file ใน memory
+#         output = io.BytesIO()
+#         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+#             # เขียน DataFrame ลงใน Excel
+#             df.to_excel(writer, index=False, sheet_name='Template')
+            
+#             # ปรับความกว้างคอลัมน์
+#             worksheet = writer.sheets['Template']
+#             worksheet.set_column('A:D', 20)  # ตั้งความกว้างคอลัมน์ A ถึง D เป็น 20
+            
+#             # จัด format
+#             workbook = writer.book
+#             header_format = workbook.add_format({
+#                 'bold': True,
+#                 'font_color': 'white',
+#                 'bg_color': '#4B5563',
+#                 'border': 1
+#             })
+            
+#             # ใส่ format ให้ header
+#             for col_num, value in enumerate(df.columns.values):
+#                 worksheet.write(0, col_num, value, header_format)
+        
+#         output.seek(0)
+        
+#         return send_file(
+#             output,
+#             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+#             as_attachment=True,
+#             download_name='branch_import_template.xlsx'
+#         )
+        
+#     except Exception as e:
+#         return jsonify({
+#             'success': False,
+#             'message': str(e)
+#         }), 500
         
 @app.route('/summary/<int:customer_id>/<int:branch_id>')
 def summary(customer_id, branch_id):
