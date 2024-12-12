@@ -100,7 +100,7 @@
                     <td class="px-4 py-3 text-sm" data-name>{{ branch.name }}</td>
                     <td class="px-4 py-3">
                         {% if branch.devices %}
-                        {% set device_order = ['Server', 'Manager', 'Cashier', 'Take Order'] %}
+                        {% set device_order = ['Server', 'Manager', 'Cashier', 'Take Order', 'Kiosk', 'KDS'] %}
                         {% for machine_type in device_order %}
                         {% for device in branch.devices %}
                         {% if device.isactive == 1 and device.machine_type == machine_type %}
@@ -976,6 +976,13 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-gray-700">
+                                <span class="text-gray-500 font-medium">Remark:</span>
+                                <span class="ml-2">${data.device.notes || '-'}</span>
+                            </p>
                         </div>
 
                         <!-- Action Buttons -->

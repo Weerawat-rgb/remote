@@ -151,36 +151,38 @@
                                                         <span class="font-medium text-gray-500">ID:</span>
                                                         <span id="teamviewer-id-{{ device.id }}">{{ device.teamviewer_id
                                                             or '-' }}</span>
+                                                        {% if device.teamviewer_id %}
+                                                        <button
+                                                            onclick="copyToClipboard('teamviewer-id-{{ device.id }}')"
+                                                            class="ml-1 text-gray-500 hover:text-gray-700 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                                            </svg>
+                                                        </button>
+                                                        {% endif %}
                                                     </p>
-                                                    {% if device.teamviewer_id %}
-                                                    <button onclick="copyToClipboard('teamviewer-id-{{ device.id }}')"
-                                                        class="p-1 text-gray-500 hover:text-gray-700 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                                                        </svg>
-                                                    </button>
-                                                    {% endif %}
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <p class="text-sm">
                                                         <span class="font-medium text-gray-500">Password:</span>
                                                         <span id="teamviewer-pwd-{{ device.id }}">{{
                                                             device.teamviewer_pwd or '-' }}</span>
+                                                        {% if device.teamviewer_pwd %}
+                                                        <button
+                                                            onclick="copyToClipboard('teamviewer-pwd-{{ device.id }}')"
+                                                            class="ml-1 text-gray-500 hover:text-gray-700 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                                            </svg>
+                                                        </button>
+                                                        {% endif %}
                                                     </p>
-                                                    {% if device.teamviewer_pwd %}
-                                                    <button onclick="copyToClipboard('teamviewer-pwd-{{ device.id }}')"
-                                                        class="p-1 text-gray-500 hover:text-gray-700 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                                                        </svg>
-                                                    </button>
-                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </td>
@@ -191,40 +193,40 @@
                                                         <span class="font-medium text-gray-500">ID:</span>
                                                         <span id="anydesk-id-{{ device.id }}">{{ device.anydesk_id or
                                                             '-' }}</span>
+                                                        {% if device.anydesk_id %}
+                                                        <button onclick="copyToClipboard('anydesk-id-{{ device.id }}')"
+                                                            class="ml-1 text-gray-500 hover:text-gray-700 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                                            </svg>
+                                                        </button>
+                                                        {% endif %}
                                                     </p>
-                                                    {% if device.anydesk_id %}
-                                                    <button onclick="copyToClipboard('anydesk-id-{{ device.id }}')"
-                                                        class="p-1 text-gray-500 hover:text-gray-700 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                                                        </svg>
-                                                    </button>
-                                                    {% endif %}
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <p class="text-sm">
                                                         <span class="font-medium text-gray-500">Password:</span>
                                                         <span id="anydesk-pwd-{{ device.id }}">{{
                                                             device.anydesk_pwd or '-' }}</span>
+                                                        {% if device.anydesk_pwd %}
+                                                        <button onclick="copyToClipboard('anydesk-pwd-{{ device.id }}')"
+                                                            class="ml-1 text-gray-500 hover:text-gray-700 transition-colors">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                                            </svg>
+                                                        </button>
+                                                        {% endif %}
                                                     </p>
-                                                    {% if device.anydesk_pwd %}
-                                                    <button onclick="copyToClipboard('anydesk-pwd-{{ device.id }}')"
-                                                        class="p-1 text-gray-500 hover:text-gray-700 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                                                        </svg>
-                                                    </button>
-                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm">{{ device.note or '-' }}</td>
+                                        <td class="px-6 py-4 text-sm">{{ device.notes or '-' }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -256,8 +258,8 @@
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
-                type === 'error' ? 'bg-red-500' :
-                    'bg-blue-500'
+            type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
             }`;
         toast.textContent = message;
 
