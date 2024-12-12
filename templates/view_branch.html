@@ -678,45 +678,44 @@
     }
 
     async function importBranches(event) {
-        const customerId = '{{ customer.id }}';
+        const customerId = '19';
         const fileInput = document.getElementById('fileInput');
-
         try {
             if (!fileInput.files || fileInput.files.length === 0) {
-                alert('กรุณาเลือกไฟล์');
+                showToast('กรุณาเลือกไฟล์', 'error');
                 return;
             }
+            // แสดง loading toast
+            showToast('กำลังนำเข้าข้อมูล...', 'info');
 
+            // สร้าง FormData
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            const response = await fetch(`/api/branches/devices/import/${customerId}`, {
+            // ระบุ URL เต็ม
+            const response = await fetch(`http://infosever.thaiddns.com:8080/api/branches/devices/import/${customerId}`, {
                 method: 'POST',
                 body: formData
             });
 
-            const result = await response.json();
-
+            // ตรวจสอบการตอบกลับ
             if (!response.ok) {
-                if (result.errors) {
-                    alert('พบข้อผิดพลาด:\n\n' + result.errors.join('\n'));
-                } else {
-                    alert(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
-                }
-                return;
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
             }
 
-            alert(result.message);
-            window.location.reload();
+            const result = await response.json();
+            showToast(result.message || 'นำเข้าข้อมูลสำเร็จ', 'success');
+
+            // รีเซ็ต file input
+            fileInput.value = '';
 
         } catch (error) {
-            console.error('Import failed:', error);
-            alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
-        } finally {
-            fileInput.value = '';
+            console.error('Import error:', error);
+            showToast(error.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
         }
     }
-
+    
     // เพิ่ม event listener สำหรับ file input
     document.getElementById('fileInput').addEventListener('change', importBranches);
 
@@ -1058,8 +1057,8 @@
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
-                type === 'error' ? 'bg-red-500' :
-                    'bg-blue-500'
+            type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
             }`;
         toast.textContent = message;
 
