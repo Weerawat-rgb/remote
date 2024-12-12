@@ -104,10 +104,8 @@ class Device(db.Model):
 @app.route('/')
 def index():
     try:
-        customers = Customer.query.filter_by(isactive=1).all()
-        # ทดสอบ print ค่า
-        for customer in customers:
-            print(f"Customer name: {customer.hq_contact_name}")
+        # Query active customers and sort by name
+        customers = Customer.query.filter_by(isactive=1).order_by(Customer.name).all()
         return render_template('index.html', customers=customers)
     except Exception as e:
         print(f"Error: {str(e)}")
