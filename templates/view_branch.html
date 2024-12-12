@@ -3,104 +3,155 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <div class="container mx-auto px-4 py-8">
-   <!-- Customer Info Header -->
-   <div class="mb-8">
-       <h1 class="text-2xl font-bold mb-2">สาขาทั้งหมดของ {{ customer.name }}</h1>
-       <!-- <p class="text-gray-600">รหัสลูกค้า: {{ customer.id }}</p> -->
-   </div>
-
-   <div class="mb-6 flex justify-between items-center">
-    <div>
-        <button onclick="openAddBranchModal()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
-            เพิ่มสาขา
-        </button>
+    <!-- Customer Info Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold mb-2">สาขาทั้งหมดของ {{ customer.name }}</h1>
+        <!-- <p class="text-gray-600">รหัสลูกค้า: {{ customer.id }}</p> -->
     </div>
-    <div class="flex space-x-3">
-        <button onclick="downloadTemplate()"
-            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-            </svg>
-            Download Template
-        </button>
-        <button onclick="exportBranches()"
-            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-            </svg>
-            Export
-        </button>
 
-        <input type="hidden" id="customer-id" value="{{ customer.id }}">
-        <label class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded flex items-center cursor-pointer">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-            </svg>
-            Import
-            <input type="file" id="importFile" accept=".xlsx" class="hidden" onchange="importBranches(this)">
-        </label>
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <button onclick="openAddBranchModal()"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
+                เพิ่มสาขา
+            </button>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="downloadTemplate()"
+                class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Download Template
+            </button>
+            <button onclick="exportBranches()"
+                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Export
+            </button>
+
+            <div class="relative">
+                <!-- Toast Provider -->
+                <div class="relative">
+                    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+                </div>
+
+                <!-- ส่วนอื่นๆ ของหน้าเว็บ -->
+                <input type="file" id="fileInput" accept=".xlsx" style="display: none" />
+                <button onclick="triggerFileInput()"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Import
+                </button>
+            </div>
+
+            <!-- เพิ่ม loading spinner (ซ่อนไว้ตอนเริ่มต้น) -->
+            <div id="loadingSpinner"
+                class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+            </div>
+
+            <!-- <input type="hidden" id="customer-id" value="{{ customer.id }}"> -->
+            <!-- <label
+                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded flex items-center cursor-pointer">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Import
+                <input type="hidden" id="customer-id"> -->
+            <!-- <input type="file" accept=".xlsx" onchange="importBranches(this)"> -->
+            <!-- <input type="file" id="importFile" accept=".xlsx" class="hidden" onchange="importBranches(this)">
+            </label> -->
+        </div>
     </div>
-</div>
-<!-- Branches List -->
+    <!-- Branches List -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full table-auto divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสสาขา</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อสาขา</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เครื่องใช้งาน</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เบอร์โทร</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การจัดการ</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                        รหัสสาขา</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
+                        ชื่อสาขา</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">
+                        เครื่องใช้งาน</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
+                        เบอร์โทร</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">
+                        หมายเหตุ</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                        รายการอุปกรณ์</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                        การจัดการ</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for branch in branches if branch.isactive == 1 %}
                 <tr data-branch-id="{{ branch.id }}">
-                    <td class="px-6 py-4 whitespace-nowrap">{{ branch.branch_code }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap" 
-                        data-name="{{ branch.name }}">{{ branch.name }}</td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 py-3 text-sm" data-branch-code>{{ branch.branch_code }}</td>
+                    <td class="px-4 py-3 text-sm" data-name>{{ branch.name }}</td>
+                    <td class="px-4 py-3">
                         {% if branch.devices %}
-                            {% set device_order = ['Server', 'Manager', 'Cashier', 'Take Order'] %}
-                            {% for machine_type in device_order %}
-                                {% for device in branch.devices %}
-                                    {% if device.isactive == 1 and device.machine_type == machine_type %}
-                                        <button 
-                                            onclick="showDeviceDetail('{{ branch.id }}', '{{ device.machine_type }}')"
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2 mb-1 hover:bg-blue-200 transition-colors">
-                                            {{ device.machine_type }}
-                                        </button>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endfor %}
+                        {% set device_order = ['Server', 'Manager', 'Cashier', 'Take Order', 'Kiosk', 'KDS'] %}
+                        {% for machine_type in device_order %}
+                        {% for device in branch.devices %}
+                        {% if device.isactive == 1 and device.machine_type == machine_type %}
+                        <button onclick="showDeviceDetail('{{ branch.id }}', '{{ device.machine_type }}')"
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2 mb-1 hover:bg-blue-200 transition-colors">
+                            {{ device.machine_type }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
                         {% else %}
-                            <span class="text-gray-400">-</span>
+                        <span class="text-gray-400">-</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap" 
-                        data-contact-phone="{{ branch.contact_phone }}">{{ branch.contact_phone }}</td>
-                    <td class="hidden" 
-                        data-contact-name="{{ branch.contact_name }}"
-                        data-address="{{ branch.address }}"></td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <button onclick="openEditBranchModal('{{ branch.id }}')"
-                            class="text-indigo-600 hover:text-indigo-900 mr-4">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <td class="px-4 py-3 text-sm" data-contact-phone="{{ branch.contact_phone | default('', true) }}">
+                        {{ branch.contact_phone | default('', true) }}
+                    </td>
+                    <td class="px-4 py-3 text-sm break-words" data-notes="{{ branch.notes | default('', true) }}">
+                        {{ branch.notes | default('', true) }}
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <a href="{{ url_for('summary', customer_id=branch.customer_id, branch_id=branch.id) }}"
+                            class="inline-flex items-center px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-900 rounded-md hover:bg-indigo-50 transition-colors duration-200">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                        </button>
-                        <button onclick="deleteBranch('{{ branch.id }}')"
-                            class="text-red-600 hover:text-red-900">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
+                        </a>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="flex space-x-2">
+                            <button onclick="openRemoteModal('{{ branch.id }}')"
+                                class="inline-flex items-center px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-900 rounded-md hover:bg-indigo-50 transition-colors duration-200">
+                                รีโมท
+                            </button>
+                            <button onclick="openEditBranchModal('{{ branch.id }}')"
+                                class="text-indigo-600 hover:text-indigo-900">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button onclick="deleteBranch('{{ branch.id }}')" class="text-red-600 hover:text-red-900">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -111,27 +162,27 @@
 
 <!-- Add Branch Modal -->
 <div id="addBranchModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
-   <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
-       <!-- Modal Header -->
-       <div class="flex justify-between items-center p-4 border-b">
-           <h3 class="text-lg font-semibold">เพิ่มสาขาใหม่</h3>
-           <button onclick="closeAddBranchModal()" class="text-gray-500 hover:text-gray-700">
-               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-               </svg>
-           </button>
-       </div>
+    <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-lg font-semibold">เพิ่มสาขาใหม่</h3>
+            <button type="button" onclick="closeAddBranchModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
 
         <!-- Modal Content -->
-        <form id="addBranchForm" class="p-4" onsubmit="addBranch(event)">
+        <form id="addBranchForm" class="p-4">
             <input type="hidden" id="customer_id" name="customer_id" value="{{ customer.id }}">
-                    
+
             <div class="grid grid-cols-1 gap-4">
                 <div>
                     <label for="branch_code" class="block text-sm font-medium text-gray-700">
                         รหัสสาขา <span class="text-red-500">(ถ้ามีไม่บังคับ)</span>
                     </label>
-                    <input type="text" id="branch_code" name="branch_code" 
+                    <input type="text" id="branch_code" name="branch_code"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div>
@@ -146,26 +197,33 @@
                     <input type="tel" id="contact_phone" name="contact_phone"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700">
+                        หมายเหตุ
+                    </label>
+                    <textarea id="branch_notes" name="notes" rows="3"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-4 flex justify-end space-x-2">
+                <button type="button" onclick="closeAddBranchModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+                    ยกเลิก
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
+                    บันทึก
+                </button>
             </div>
         </form>
-        <div class="mt-4 px-4 pb-4 flex justify-end space-x-2">
-            <button type="button" onclick="closeAddBranchModal()"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
-                ยกเลิก
-            </button>
-            <button type="button" onclick="addBranch()"
-                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
-                บันทึก
-            </button>
-         </div>
-       </form>
-   </div>
+    </div>
 </div>
 
-<!-- Modal สำหรับแก้ไขข้อมูลสาขา -->
+<!-- Edit Branch Modal -->
 <div id="editBranchModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
-        <!-- Modal Header -->
         <div class="flex justify-between items-center p-4 border-b">
             <h3 class="text-lg font-semibold">แก้ไขข้อมูลสาขา</h3>
             <button onclick="closeEditBranchModal()" class="text-gray-500 hover:text-gray-700">
@@ -175,19 +233,17 @@
             </button>
         </div>
 
-        <!-- Modal Content -->
         <form id="editBranchForm" class="p-4" onsubmit="updateBranch(event)">
             <input type="hidden" id="edit_branch_id" name="branch_id">
-            
+
             <div class="grid grid-cols-1 gap-4">
                 <div>
                     <label for="edit_branch_code" class="block text-sm font-medium text-gray-700">
-                        รหัสสาขา <span class="text-red-500">*</span>
+                        รหัสสาขา <span class="text-red-500"></span>
                     </label>
-                    <input type="text" id="edit_branch_code" name="branch_code" required
+                    <input type="text" id="edit_branch_code" name="branch_code"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
-         
                 <div>
                     <label for="edit_branch_name" class="block text-sm font-medium text-gray-700">
                         ชื่อสาขา <span class="text-red-500">*</span>
@@ -195,15 +251,23 @@
                     <input type="text" id="edit_branch_name" name="name" required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
-         
                 <div>
-                    <label for="edit_contact_phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                    <label for="edit_contact_phone" class="block text-sm font-medium text-gray-700">
+                        เบอร์โทรศัพท์
+                    </label>
                     <input type="tel" id="edit_contact_phone" name="contact_phone"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
+                <div>
+                    <label for="edit_notes" class="block text-sm font-medium text-gray-700">
+                        หมายเหตุ
+                    </label>
+                    <textarea id="edit_notes" name="notes" rows="3"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+
             </div>
-         
-            <!-- Footer buttons -->
+
             <div class="mt-4 flex justify-end space-x-2">
                 <button type="button" onclick="closeEditBranchModal()"
                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
@@ -214,7 +278,7 @@
                     บันทึก
                 </button>
             </div>
-         </form>
+        </form>
     </div>
 </div>
 
@@ -224,45 +288,45 @@
         <!-- Modal Header -->
         <div class="flex justify-between items-center p-4 border-b">
             <h3 class="text-lg font-semibold">ข้อมูลรีโมท</h3>
-            <button onclick="closeRemoteModal()"
-                class="text-gray-500 hover:text-gray-700">
+            <button onclick="closeRemoteModal()" class="text-gray-500 hover:text-gray-700">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
- 
+
         <!-- Modal Content -->
         <div class="p-4">
             <input type="hidden" id="remote_branch_id">
             <input type="hidden" id="is_editing" value="false">
-            <input type="hidden" id="edit_machine_type">            
+            <input type="hidden" id="edit_machine_type">
             <!-- Machine Type -->
             <div class="mb-4">
                 <h4 class="text-base font-medium mb-2">ประเภทเครื่อง</h4>
-                <select id="remote_machine_type" 
-                        class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md"
-                        >
+                <select id="remote_machine_type"
+                    class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
                     <option value="Cashier">Cashier</option>
                     <option value="Manager">Manager</option>
                     <option value="Take Order">Take Order</option>
                     <option value="Server">Server</option>
+                    <option value="Server">Kiosk</option>
+                    <option value="Server">KDS</option>
                 </select>
             </div>
- 
+
             <!-- Teamviewer Section -->
             <div class="mb-4">
                 <h4 class="text-base font-medium mb-2">Teamviewer</h4>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">TeamViewer ID</label>
-                        <input type="text" id="remote_teamviewer_id" 
+                        <input type="text" id="remote_teamviewer_id"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
-                
+
                     <div class="form-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">TeamViewer Password</label>
-                        <input type="text" id="remote_teamviewer_pwd" 
+                        <input type="text" id="remote_teamviewer_pwd"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                 </div>
@@ -274,13 +338,13 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">AnyDesk ID</label>
-                        <input type="text" id="remote_anydesk_id" 
+                        <input type="text" id="remote_anydesk_id"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
-                
+
                     <div class="form-group">
                         <label class="block text-sm font-medium text-gray-700 mb-1">AnyDesk Password</label>
-                        <input type="text" id="remote_anydesk_pwd" 
+                        <input type="text" id="remote_anydesk_pwd"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                 </div>
@@ -289,9 +353,8 @@
             <!-- Note Section -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">หมายเหตุ</label>
-                <textarea id="remote_notes" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                        rows="3"></textarea>
+                <textarea id="remote_notes" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    rows="3"></textarea>
             </div>
 
             <!-- Buttons -->
@@ -304,463 +367,754 @@
                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">
                     บันทึก
                 </button>
-            </div>        
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-async function openEditBranchModal(branchId) {
-    try {
-        const response = await fetch(`/api/branches/${branchId}`);
-        if (!response.ok) throw new Error('Failed to fetch branch data');
-        const branch = await response.json();
+    async function openEditBranchModal(branchId) {
+        try {
+            // หา row ของสาขาที่ต้องการแก้ไข
+            const tr = document.querySelector(`tr[data-branch-id="${branchId}"]`);
+            if (!tr) throw new Error('ไม่พบข้อมูลสาขา');
 
-        document.getElementById('edit_branch_id').value = branchId;
-        document.getElementById('edit_branch_name').value = branch.name || '';
-        document.getElementById('edit_contact_name').value = branch.contact_name || '';
-        document.getElementById('edit_contact_phone').value = branch.contact_phone || '';
-        document.getElementById('edit_address').value = branch.address || '';
+            // ดึงข้อมูลจาก cells แทนการใช้ data attributes
+            const name = tr.querySelector('td[data-name]')?.textContent.trim();
+            const contactPhone = tr.querySelector('td[data-contact-phone]')?.textContent.trim();
+            const branchCode = tr.querySelector('td[data-branch-code]')?.textContent.trim();
+            const notes = tr.querySelector('td[data-notes]')?.textContent.trim();
 
+            // ตรวจสอบและกำหนดค่าให้กับ form fields
+            const elements = {
+                'edit_branch_id': branchId,
+                'edit_branch_name': name || '',
+                'edit_contact_phone': contactPhone || '',
+                'edit_branch_code': branchCode || '',
+                'edit_notes': notes || ''
+            };
+
+            // กำหนดค่าให้แต่ละ field
+            for (const [id, value] of Object.entries(elements)) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = value;
+                }
+            }
+
+            // แสดง modal
+            const modal = document.getElementById('editBranchModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message);
+        }
+    }
+    function closeEditBranchModal() {
         const modal = document.getElementById('editBranchModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
+    async function updateBranch(event) {
+        event.preventDefault();
+        console.log('Updating branch...'); // Debug log
+
+        const branchId = document.getElementById('edit_branch_id').value;
+        const formData = {
+            branch_code: document.getElementById('edit_branch_code').value,
+            name: document.getElementById('edit_branch_name').value,
+            contact_phone: document.getElementById('edit_contact_phone').value,
+            notes: document.getElementById('edit_notes').value,
+            isactive: true
+        };
+
+        console.log('Form data:', formData); // Debug log
+
+        try {
+            const response = await fetch(`/api/branches/${branchId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            console.log('Response status:', response.status); // Debug log
+
+            const result = await response.json();
+            console.log('Response data:', result); // Debug log
+
+            if (result.success) {
+                closeEditBranchModal();
+                location.reload();
+            } else {
+                alert(result.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+        }
+    }
+
+    // function clearRemoteForm() {
+    //     // เคลียร์ค่า branch_id
+    //     document.getElementById('remote_branch_id').value = '';
+
+    //     // เคลียร์ machine type กลับไปค่าเริ่มต้น
+    //     const machineTypeSelect = document.getElementById('remote_machine_type');
+    //     machineTypeSelect.value = machineTypeSelect.options[0].value;
+
+    //     // เคลียร์ค่าทุกฟิลด์ให้ว่าง
+    //     document.getElementById('remote_teamviewer_id').value = '';
+    //     document.getElementById('remote_teamviewer_pwd').value = '';
+    //     document.getElementById('remote_anydesk_id').value = '';
+    //     document.getElementById('remote_anydesk_pwd').value = '';
+    //     document.getElementById('remote_notes').value = '';
+    // }
+
+    function openRemoteModal(branchId) {
+        console.log('Opening remote modal for branch:', branchId);
+        document.getElementById('remote_branch_id').value = branchId;
+
+        // เคลียร์ค่าทุกฟิลด์ให้ว่าง
+        const machineTypeSelect = document.getElementById('remote_machine_type');
+        machineTypeSelect.value = machineTypeSelect.options[0].value;
+        document.getElementById('remote_teamviewer_id').value = '';
+        document.getElementById('remote_teamviewer_pwd').value = '';
+        document.getElementById('remote_anydesk_id').value = '';
+        document.getElementById('remote_anydesk_pwd').value = '';
+        document.getElementById('remote_notes').value = '';
+
+        // แสดง Modal
+        const modal = document.getElementById('remoteModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-    } catch (error) {
-        console.error('Error:', error);
-        alert('เกิดข้อผิดพลาดในการดึงข้อมูล');
     }
-}
+    // Function สำหรับบันทึกข้อมูล Device
+    function saveRemote() {
+        const branchId = document.getElementById('remote_branch_id').value;
+        const isEditing = document.getElementById('is_editing').value === 'true';
+        const editMachineType = document.getElementById('edit_machine_type').value;
 
-function closeEditBranchModal() {
-    const modal = document.getElementById('editBranchModal');
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-}
+        const data = {
+            branch_id: parseInt(branchId),
+            machine_type: document.getElementById('remote_machine_type').value,
+            teamviewer_id: document.getElementById('remote_teamviewer_id').value,
+            teamviewer_pwd: document.getElementById('remote_teamviewer_pwd').value,
+            anydesk_id: document.getElementById('remote_anydesk_id').value,
+            anydesk_pwd: document.getElementById('remote_anydesk_pwd').value,
+            notes: document.getElementById('remote_notes').value
+        };
 
-async function updateBranch(event) {
-    event.preventDefault();
-    
-    const branchId = document.getElementById('edit_branch_id').value;
-    const formData = {
-        branch_code: document.getElementById('edit_branch_code').value,
-        name: document.getElementById('edit_branch_name').value,
-        contact_phone: document.getElementById('edit_contact_phone').value
-    };
+        // เลือกใช้ POST สำหรับเพิ่มใหม่ หรือ PUT สำหรับแก้ไข
+        const url = isEditing ?
+            `/api/branches/${branchId}/devices/${editMachineType}` :
+            '/api/devices';
 
-    try {
-        const response = await fetch(`/api/branches/${branchId}`, {
-            method: 'PUT',
+        const method = isEditing ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData)
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            closeEditBranchModal();
-            location.reload();
-        } else {
-            alert(result.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeRemoteModal();
+                    location.reload();
+                } else {
+                    alert(data.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            });
     }
-}
-function openRemoteModal(branchId) {
-    document.getElementById('remote_branch_id').value = branchId;
-    
-    fetch(`/api/branches/${branchId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Set machine type dropdown
-                const machineTypeSelect = document.getElementById('remote_machine_type');
-                machineTypeSelect.value = data.machine_type || machineTypeSelect.options[0].value;
-                
-                // Set other fields - แก้ไข ID ให้ตรงกับ HTML
-                document.getElementById('remote_teamviewer_id').value = data.teamviewer_id || '';
-                document.getElementById('remote_teamviewer_pwd').value = data.teamviewer_pwd || '';  // แก้จาก teamviewer_password
-                document.getElementById('remote_anydesk_id').value = data.anydesk_id || '';
-                document.getElementById('remote_anydesk_pwd').value = data.anydesk_pwd || '';  // แก้จาก anydesk_password
-                document.getElementById('remote_notes').value = data.notes || '';  // แก้จาก note
-                
-                // Show modal
-                document.getElementById('remoteModal').classList.remove('hidden');
-                document.getElementById('remoteModal').classList.add('flex');
+    function closeRemoteModal() {
+        const modal = document.getElementById('remoteModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function openAddBranchModal() {
+        const modal = document.getElementById('addBranchModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    document.getElementById('addBranchForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        try {
+            const formData = new FormData(event.target);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            const response = await fetch('/api/branches/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                closeAddBranchModal();
+                alert('บันทึกข้อมูลสำเร็จ');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             } else {
-                alert(data.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูลรีโมท');
+                throw new Error(result.message || 'ไม่สามารถบันทึกข้อมูลได้');
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error:', error);
-            alert('เกิดข้อผิดพลาดในการโหลดข้อมูลรีโมท');
-        });
-}
-
-// Function สำหรับบันทึกข้อมูล Device
-function saveRemote() {
-    const branchId = document.getElementById('remote_branch_id').value;
-    const isEditing = document.getElementById('is_editing').value === 'true';
-    const editMachineType = document.getElementById('edit_machine_type').value;
-
-    const data = {
-        branch_id: parseInt(branchId),
-        machine_type: document.getElementById('remote_machine_type').value,
-        teamviewer_id: document.getElementById('remote_teamviewer_id').value,
-        teamviewer_pwd: document.getElementById('remote_teamviewer_pwd').value,
-        anydesk_id: document.getElementById('remote_anydesk_id').value,
-        anydesk_pwd: document.getElementById('remote_anydesk_pwd').value,
-        notes: document.getElementById('remote_notes').value
-    };
-
-    // เลือกใช้ POST สำหรับเพิ่มใหม่ หรือ PUT สำหรับแก้ไข
-    const url = isEditing ? 
-        `/api/branches/${branchId}/devices/${editMachineType}` : 
-        '/api/devices';
-    
-    const method = isEditing ? 'PUT' : 'POST';
-
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            closeRemoteModal();
-            location.reload();
-        } else {
-            alert(data.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            alert('เกิดข้อผิดพลาดในการเพิ่มสาขา: ' + error.message);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     });
-}
 
-function closeRemoteModal() {
-   document.getElementById('remoteModal').classList.add('hidden');
-   document.getElementById('remoteModal').classList.remove('flex');
-}
+    function closeAddBranchModal() {
+        const modal = document.getElementById('addBranchModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        // เคลียร์ form
+        document.getElementById('addBranchForm').reset();
+    }
 
-function openAddBranchModal() {
-   document.getElementById('addBranchModal').classList.remove('hidden');
-   document.getElementById('addBranchModal').classList.add('flex');
-}
+    async function addBranch() {
+        try {
+            const formFields = {
+                'branch_name': 'name',
+                'contact_phone': 'contact_phone',
+                'customer_id': 'customer_id',
+                'branch_code': 'branch_code',
+                'branch_notes': 'notes'
+            };
 
-function closeAddBranchModal() {
-   document.getElementById('addBranchModal').classList.add('hidden');
-   document.getElementById('addBranchModal').classList.remove('flex');
-}
+            const formData = {};
+            for (const [elementId, fieldName] of Object.entries(formFields)) {
+                const element = document.getElementById(elementId);
+                if (!element) {
+                    console.error(`ไม่พบ element: ${elementId}`);
+                    alert(`เกิดข้อผิดพลาดระบบ: ไม่พบฟิลด์ ${fieldName}`);
+                    return;
+                }
+                formData[fieldName] = element.value.trim();
+            }
 
-async function addBranch() {
-    try {
-        // กำหนด mapping ระหว่าง element ID กับ field name ที่จะส่งไป API
-        const formFields = {
-            'branch_name': 'name',  // เปลี่ยนจาก branch_name เป็น name
-            'contact_name': 'contact_name',
-            'contact_phone': 'contact_phone',
-            'customer_id': 'customer_id',
-            'branch_code': 'branch_code'
-        };
+            const response = await fetch('/api/branches/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
 
-        // รวบรวมข้อมูลและตรวจสอบ
-        const formData = {};
-        const missing = [];
+            const data = await response.json();
 
-        for (const [elementId, fieldName] of Object.entries(formFields)) {
-            const element = document.getElementById(elementId);
-            if (!element) {
-                console.error(`ไม่พบ element: ${elementId}`);
-                alert(`เกิดข้อผิดพลาดระบบ: ไม่พบฟิลด์ ${fieldName}`);
+            if (data.success) {
+                alert('เพิ่มสาขาเรียบร้อยแล้ว');
+                closeAddBranchModal();
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'ไม่สามารถบันทึกข้อมูลได้');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        }
+    }
+    function closeEditBranchModal() {
+        document.getElementById('editBranchModal').classList.add('hidden');
+        document.getElementById('editBranchModal').classList.remove('flex');
+    }
+
+    function deleteBranch(branchId) {
+        if (confirm('คุณแน่ใจที่จะลบสาขานี้หรือไม่?')) {
+            console.log('Deleting branch:', branchId); // Debug log
+
+            fetch(`/api/branches/${branchId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response:', data); // Debug log
+                    if (data.success) {
+                        alert('ลบสาขาเรียบร้อยแล้ว');
+                        location.reload();
+                    } else {
+                        alert('เกิดข้อผิดพลาด: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการลบสาขา');
+                });
+        }
+    }
+
+    function exportBranches() {
+        const customerId = '{{ customer.id }}'; // รับค่า customer ID จาก template
+        window.location.href = `/api/branches/devices/export/${customerId}/export`;
+    }
+    function triggerFileInput() {
+        document.getElementById('fileInput').click();
+    }
+
+    async function importBranches(event) {
+        const customerId = '{{ customer.id }}';
+        const fileInput = document.getElementById('fileInput');
+
+        try {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('กรุณาเลือกไฟล์');
                 return;
             }
 
-            const value = element.value.trim();
-            if (!value) {
-                missing.push(fieldName);
-            }
-            formData[fieldName] = value;  // ใช้ชื่อ field ที่ถูกต้องสำหรับ API
-        }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
 
-        if (missing.length > 0) {
-            alert(`กรุณากรอก: ${missing.join(', ')}`);
-            return;
-        }
+            const response = await fetch(`/api/branches/devices/import/${customerId}`, {
+                method: 'POST',
+                body: formData
+            });
 
-        console.log('กำลังส่งข้อมูล:', formData);
-        
-        const response = await fetch('/api/branches', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
+            const result = await response.json();
 
-        console.log('สถานะการตอบกลับ:', response.status);
-        
-        const data = await response.json();
-        console.log('ข้อมูลตอบกลับ:', data);
-
-        if (!response.ok) {
-            throw new Error(data.message || `HTTP error! status: ${response.status}`);
-        }
-
-        if (data.success) {
-            alert('เพิ่มสาขาเรียบร้อยแล้ว');
-            closeAddBranchModal();
-            location.reload();
-        } else {
-            throw new Error(data.message || 'ไม่สามารถบันทึกข้อมูลได้');
-        }
-    } catch (error) {
-        console.error('ข้อผิดพลาด:', error);
-        alert(`เกิดข้อผิดพลาด: ${error.message}`);
-    }
-}
-
-function closeEditBranchModal() {
-   document.getElementById('editBranchModal').classList.add('hidden');
-   document.getElementById('editBranchModal').classList.remove('flex');
-}
-
-function deleteBranch(branchId) {
-    if (confirm('คุณแน่ใจที่จะลบสาขานี้หรือไม่?')) {
-        console.log('Deleting branch:', branchId); // Debug log
-
-        fetch(`/api/branches/${branchId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Response:', data); // Debug log
-            if (data.success) {
-                alert('ลบสาขาเรียบร้อยแล้ว');
-                location.reload();
-            } else {
-                alert('เกิดข้อผิดพลาด: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('เกิดข้อผิดพลาดในการลบสาขา');
-        });
-    }
-}
-
-function exportBranches() {
-    const customerId = '{{ customer.id }}'; // รับค่า customer ID จาก template
-    window.location.href = `/api/branches/${customerId}/export`;
-}
-
-// ฟังก์ชันสำหรับแสดง toast notification
-function showToast(type, message) {
-    Swal.fire({
-        icon: type === 'success' ? 'success' : 'error',
-        title: message,
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000
-    });
-}
-
-function importBranches(input) {
-    const file = input.files[0];
-    if (!file) {
-        console.log("No file selected");
-        return;
-    }
-
-    console.log("File selected:", file.name);
-
-    const customerId = document.getElementById('customer-id').value;
-    console.log("Customer ID:", customerId);
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    // แสดง loading
-    Swal.fire({
-        title: 'กำลังนำเข้าข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    fetch(`/api/branches/${customerId}/import`, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        console.log("Response status:", response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log("Response data:", data);
-        Swal.close();
-        
-        if (data.success) {
-            showToast('success', data.message);
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            showToast('error', data.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.close();
-        showToast('error', 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
-    });
-}
-
-function downloadTemplate() {
-    window.location.href = '/api/branches/template';
-}
-
-function showDeviceDetail(branchId, machineType) {
-    fetch(`/api/branches/${branchId}/devices/${machineType}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.device) {  // เช็คว่ามีข้อมูล device ด้วย
-                let anydeskStatus = '';
-                if (data.device.anydesk_id) {
-                    fetch(`/api/check-anydesk-status/${data.device.anydesk_id}`)
-                        .then(response => response.json())
-                        .then(statusData => {
-                            anydeskStatus = statusData.is_online ? 
-                                '<span class="text-green-600">● Online</span>' : 
-                                '<span class="text-gray-400">● Offline</span>';
-                            updateAnydeskStatus(anydeskStatus);
-                        });
+            if (!response.ok) {
+                if (result.errors) {
+                    alert('พบข้อผิดพลาด:\n\n' + result.errors.join('\n'));
+                } else {
+                    alert(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
                 }
-                let detailContent = `
-                    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
-                            <div class="flex justify-between items-center p-4 border-b">
-                                <h3 class="text-lg font-semibold">รายละเอียดเครื่อง ${machineType}</h3>
-                                <button onclick="this.closest('div.fixed').remove()"
-                                    class="text-gray-500 hover:text-gray-700">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-4">
-                                <div class="mb-4">
-                                    <h4 class="text-base font-medium mb-2">Teamviewer</h4>
-                                    <p>ID: ${data.device.teamviewer_id || '-'}</p>
-                                    <p>Password: ${data.device.teamviewer_pwd || '-'}</p>
-                                </div>
-                                <div class="mb-4">
-                                    <h4 class="text-base font-medium mb-2">Anydesk</h4>
-                                    <p>ID: ${data.device.anydesk_id || '-'} 
-                                    <span id="anydesk-status">
-                                        ${data.device.anydesk_id ? '<span class="text-gray-400">กำลังตรวจสอบ...</span>' : ''}
-                                    </span>
+                return;
+            }
+
+            alert(result.message);
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Import failed:', error);
+            alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
+        } finally {
+            fileInput.value = '';
+        }
+    }
+
+    // เพิ่ม event listener สำหรับ file input
+    document.getElementById('fileInput').addEventListener('change', importBranches);
+
+
+    // ฟังก์ชันสำหรับแสดง toast notification
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+
+        const toast = document.createElement('div');
+        toast.className = `rounded-md px-6 py-4 text-sm font-medium text-white shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
+            type === 'error' ? 'bg-red-500' :
+                type === 'info' ? 'bg-blue-500' : 'bg-gray-500'
+            }`;
+
+        // สร้าง flex container สำหรับ icon และ message
+        const content = document.createElement('div');
+        content.className = 'flex items-center';
+
+        // เพิ่ม loading spinner ถ้าเป็น info toast
+        if (type === 'info') {
+            const spinner = document.createElement('div');
+            spinner.className = 'animate-spin mr-2 h-4 w-4 text-white';
+            spinner.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        `;
+            content.appendChild(spinner);
+        }
+
+        const text = document.createElement('span');
+        text.textContent = message;
+        content.appendChild(text);
+
+        toast.appendChild(content);
+        container.appendChild(toast);
+
+        // Animation
+        setTimeout(() => toast.style.opacity = '0', 3000);
+        setTimeout(() => container.removeChild(toast), 3500);
+    }
+
+    async function importBranches(event) {
+        const customerId = '{{ customer.id }}';
+        const fileInput = document.getElementById('fileInput');
+
+        try {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast('กรุณาเลือกไฟล์', 'error');
+                return;
+            }
+
+            // แสดง loading toast
+            showToast('กำลังนำเข้าข้อมูล...', 'info');
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch(`/api/branches/devices/import/${customerId}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                if (result.errors) {
+                    showToast('พบข้อผิดพลาด', 'error');
+                    alert('พบข้อผิดพลาด:\n\n' + result.errors.join('\n'));
+                } else {
+                    showToast(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
+                }
+                return;
+            }
+
+            // แสดง success toast
+            showToast(result.message, 'success');
+
+            // รีเฟรชหน้าเว็บหลังจาก toast แสดงเสร็จ
+            setTimeout(() => window.location.reload(), 3500);
+
+        } catch (error) {
+            console.error('Import failed:', error);
+            showToast('เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
+        } finally {
+            fileInput.value = '';
+        }
+    }
+
+    // เพิ่ม event listener สำหรับ file input
+    document.getElementById('fileInput').addEventListener('change', importBranches);
+
+
+    // ฟังก์ชันสำหรับแสดง toast notification
+    function showToast() {
+        const toast = document.createElement('div');
+        toast.className = `
+        fixed bottom-4 right-4 
+        bg-indigo-600 text-white 
+        px-6 py-3 
+        rounded-lg shadow-lg 
+        flex items-center
+        transform translate-y-0
+        transition-all duration-300
+        z-[9999]
+    `;
+        toast.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>คัดลอกแล้ว</span>
+    `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.transform = 'translate(0, 0)';
+        }, 100);
+
+        // ลบ toast หลังจาก 3 วินาที
+        setTimeout(() => {
+            toast.style.transform = 'translate(0, 200%)';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+
+    // Utility function สำหรับแสดง toast
+    function showToast(icon, text) {
+        Swal.fire({
+            toast: true,
+            icon: icon,
+            title: text,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+    async function downloadTemplate() {
+        try {
+            const response = await fetch('/api/branches/devices/template');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // รับ blob จาก response
+            const blob = await response.blob();
+
+            // สร้าง URL สำหรับ blob
+            const url = window.URL.createObjectURL(blob);
+
+            // สร้าง element a เพื่อดาวน์โหลด
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'device_import_template.xlsx';
+            document.body.appendChild(a);
+            a.click();
+
+            // cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('เกิดข้อผิดพลาดในการดาวน์โหลด Template');
+        }
+    }
+
+    function showDeviceDetail(branchId, machineType) {
+        fetch(`/api/branches/${branchId}/devices/${machineType}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.device) {
+                    let detailContent = `
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+                <div class="bg-white rounded-xl max-w-2xl w-full mx-4 shadow-2xl">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-6 border-b bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-t-xl">
+                        <h3 class="text-xl font-semibold text-white">รายละเอียดเครื่อง ${machineType}</h3>
+                        <button onclick="this.closest('div.fixed').remove()" 
+                                class="text-white/70 hover:text-white transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-6 space-y-6">
+                        <!-- Teamviewer Section -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-indigo-600 mb-4">Teamviewer</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                                    <p class="text-gray-700">
+                                        <span class="text-gray-500 font-medium">ID:</span> 
+                                        <span class="ml-2">${data.device.teamviewer_id || '-'}</span>
                                     </p>
-                                    <p>Password: ${data.device.anydesk_pwd || '-'}</p>
-                                </div>
-                                <div class="mb-4">
-                                    <h4 class="text-base font-medium mb-2">หมายเหตุ</h4>
-                                    <p>${data.device.notes || '-'}</p>
+                                    <button onclick="copyToClipboard('${data.device.teamviewer_id}')" 
+                                            class="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                        </svg>
+                                    </button>
                                 </div>
                                 
-                                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t">
-                                    <button onclick="this.closest('div.fixed').remove(); editDevice('${branchId}', '${machineType}')"
-                                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
-                                        แก้ไข
-                                    </button>
-                                    <button onclick="if(confirm('คุณต้องการลบข้อมูลเครื่องนี้ใช่หรือไม่?')) deleteDevice('${branchId}', '${machineType}')"
-                                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">
-                                        ลบ
+                                <div class="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                                    <p class="text-gray-700">
+                                        <span class="text-gray-500 font-medium">Password:</span>
+                                        <span class="ml-2">${data.device.teamviewer_pwd || '-'}</span>
+                                    </p>
+                                    <button onclick="copyToClipboard('${data.device.teamviewer_pwd}')"
+                                            class="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Anydesk Section -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-indigo-600 mb-4">Anydesk</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                                    <p class="text-gray-700">
+                                        <span class="text-gray-500 font-medium">ID:</span>
+                                        <span class="ml-2">${data.device.anydesk_id || '-'}</span>
+                                    </p>
+                                    <button onclick="copyToClipboard('${data.device.anydesk_id}')"
+                                            class="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                                    <p class="text-gray-700">
+                                        <span class="text-gray-500 font-medium">Password:</span>
+                                        <span class="ml-2">${data.device.anydesk_pwd || '-'}</span>
+                                    </p>
+                                    <button onclick="copyToClipboard('${data.device.anydesk_pwd}')"
+                                            class="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-gray-700">
+                                <span class="text-gray-500 font-medium">Remark:</span>
+                                <span class="ml-2">${data.device.notes || '-'}</span>
+                            </p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-8 pt-4 border-t flex justify-end space-x-3">
+                            <button onclick="this.closest('div.fixed').remove(); editDevice('${branchId}', '${machineType}')"
+                                    class="flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                แก้ไข
+                            </button>
+                            
+                            <button onclick="if(confirm('คุณต้องการลบข้อมูลเครื่องนี้ใช่หรือไม่?')) deleteDevice('${branchId}', '${machineType}')"
+                                    class="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                ลบ
+                            </button>
+                        </div>
                     </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', detailContent);
-            } else {
-                alert(data.message || 'ไม่พบข้อมูลเครื่อง');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
-        });
-}
-function updateAnydeskStatus(status) {
-    const statusElement = document.getElementById('anydesk-status');
-    if (statusElement) {
-        statusElement.innerHTML = status;
+                </div>
+                </div>
+               `;
+                    document.body.insertAdjacentHTML('beforeend', detailContent);
+                } else {
+                    alert(data.message || 'ไม่พบข้อมูลเครื่อง');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+            });
     }
-}
 
-function editDevice(branchId, machineType) {
-    fetch(`/api/branches/${branchId}/devices/${machineType}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // เติมข้อมูลในฟอร์มแก้ไข
-                document.getElementById('remote_branch_id').value = branchId;
-                document.getElementById('remote_machine_type').value = machineType;
-                document.getElementById('remote_teamviewer_id').value = data.device.teamviewer_id || '';
-                document.getElementById('remote_teamviewer_pwd').value = data.device.teamviewer_pwd || '';
-                document.getElementById('remote_anydesk_id').value = data.device.anydesk_id || '';
-                document.getElementById('remote_anydesk_pwd').value = data.device.anydesk_pwd || '';
-                document.getElementById('remote_notes').value = data.device.notes || '';
-                
-                // เพิ่ม flag เพื่อบอกว่ากำลังแก้ไข
-                document.getElementById('is_editing').value = 'true';
-                document.getElementById('edit_machine_type').value = machineType;
-
-                // เปิด Modal แก้ไข
-                const remoteModal = document.getElementById('remoteModal');
-                remoteModal.classList.remove('hidden');
-                remoteModal.classList.add('flex');
+    function copyToClipboard(text) {
+        if (text && text !== '-') {
+            // วิธีที่ 1: ใช้ Clipboard API (modern browsers)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('คัดลอกข้อมูลแล้ว', 'success');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    showToast('ไม่สามารถคัดลอกข้อมูลได้', 'error');
+                });
             }
-        });
-}
+            // วิธีที่ 2: วิธีดั้งเดิมใช้ textarea
+            else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-999999px';
+                textarea.style.top = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
 
-function deleteDevice(branchId, machineType) {
-    fetch(`/api/branches/${branchId}/devices/${machineType}`, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('ลบข้อมูลเครื่องเรียบร้อยแล้ว');
-            location.reload();
-        } else {
-            alert(data.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+                try {
+                    document.execCommand('copy');
+                    textarea.remove();
+                    showToast('คัดลอกข้อมูลแล้ว', 'success');
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                    textarea.remove();
+                    showToast('ไม่สามารถคัดลอกข้อมูลได้', 'error');
+                }
+            }
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('เกิดข้อผิดพลาดในการลบข้อมูล');
-    });
-}
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                    'bg-blue-500'
+            }`;
+        toast.textContent = message;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 2000);
+    }
+
+    function editDevice(branchId, machineType) {
+        fetch(`/api/branches/${branchId}/devices/${machineType}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // เติมข้อมูลในฟอร์มแก้ไข
+                    document.getElementById('remote_branch_id').value = branchId;
+                    document.getElementById('remote_machine_type').value = machineType;
+                    document.getElementById('remote_teamviewer_id').value = data.device.teamviewer_id || '';
+                    document.getElementById('remote_teamviewer_pwd').value = data.device.teamviewer_pwd || '';
+                    document.getElementById('remote_anydesk_id').value = data.device.anydesk_id || '';
+                    document.getElementById('remote_anydesk_pwd').value = data.device.anydesk_pwd || '';
+                    document.getElementById('remote_notes').value = data.device.notes || '';
+
+                    // เพิ่ม flag เพื่อบอกว่ากำลังแก้ไข
+                    document.getElementById('is_editing').value = 'true';
+                    document.getElementById('edit_machine_type').value = machineType;
+
+                    // เปิด Modal แก้ไข
+                    const remoteModal = document.getElementById('remoteModal');
+                    remoteModal.classList.remove('hidden');
+                    remoteModal.classList.add('flex');
+                }
+            });
+    }
+
+    function deleteDevice(branchId, machineType) {
+        fetch(`/api/branches/${branchId}/devices/${machineType}`, {
+            method: 'DELETE'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('ลบข้อมูลเครื่องเรียบร้อยแล้ว');
+                    location.reload();
+                } else {
+                    alert(data.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+            });
+    }
+
 </script>
 {% endblock %}
