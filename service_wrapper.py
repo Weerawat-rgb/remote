@@ -8,10 +8,14 @@ import os
 from app import app  # นำเข้า Flask app จากไฟล์ app.py
 import logging
 logging.basicConfig(
-    filename='C:\\RemoteManage\\flask_service.log',
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    filename='service.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    encoding='utf-8'
 )
+
+# redirect stdout to log file
+sys.stdout = open('service_output.log', 'a', encoding='utf-8')
 
 class FlaskService(win32serviceutil.ServiceFramework):
     _svc_name_ = "FlaskWebService"  # ชื่อ service
