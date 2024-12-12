@@ -5,22 +5,13 @@ import servicemanager
 import socket
 import sys
 import os
-from app import app  # นำเข้า Flask app จากไฟล์ app.py
 import logging
-logging.basicConfig(
-    filename='service.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    encoding='utf-8'
-)
-
-# redirect stdout to log file
-sys.stdout = open('service_output.log', 'a', encoding='utf-8')
+from app import app
 
 class FlaskService(win32serviceutil.ServiceFramework):
-    _svc_name_ = "FlaskWebService"  # ชื่อ service
-    _svc_display_name_ = "Flask Web Service"  # ชื่อที่แสดงใน Services
-    _svc_description_ = "Flask Web Application Service"  # คำอธิบาย service
+    _svc_name_ = "FlaskWebService"
+    _svc_display_name_ = "Flask Web Service"
+    _svc_description_ = "Flask Web Application Service"
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
@@ -28,18 +19,33 @@ class FlaskService(win32serviceutil.ServiceFramework):
         socket.setdefaulttimeout(60)
         self.is_alive = True
 
+        # ย้ายการตั้งค่า logging มาไว้ใน __init__
+        logging.basicConfig(
+            filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'service.log'),
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            encoding='utf-8'
+        )
+        
+        # ย้าย stdout redirect มาไว้ใน __init__
+        sys.stdout = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'service_output.log'), 'a', encoding='utf-8')
+
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         win32event.SetEvent(self.stop_event)
         self.is_alive = False
 
     def SvcDoRun(self):
-        servicemanager.LogMsg(
-            servicemanager.EVENTLOG_INFORMATION_TYPE,
-            servicemanager.PYS_SERVICE_STARTED,
-            (self._svc_name_, '')
-        )
-        self.main()
+        try:
+            servicemanager.LogMsg(
+                servicemanager.EVENTLOG_INFORMATION_TYPE,
+                servicemanager.PYS_SERVICE_STARTED,
+                (self._svc_name_, '')
+            )
+            self.main()
+        except Exception as e:
+            logging.error(f'Service error: {str(e)}')
+            servicemanager.LogErrorMsg(f'Service error: {str(e)}')
 
     def main(self):
         try:
@@ -51,8 +57,12 @@ class FlaskService(win32serviceutil.ServiceFramework):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        servicemanager.Initialize()
-        servicemanager.PrepareToHostSingle(FlaskService)
-        servicemanager.StartServiceCtrlDispatcher()
+        try:
+            servicemanager.Initialize()
+            servicemanager.PrepareToHostSingle(FlaskService)
+            servicemanager.StartServiceCtrlDispatcher()
+        except Exception as e:
+            logging.error(f'Service dispatcher error: {str(e)}')
+            raise
     else:
         win32serviceutil.HandleCommandLine(FlaskService)
