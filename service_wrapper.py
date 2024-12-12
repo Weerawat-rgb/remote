@@ -9,9 +9,9 @@ import logging
 from app import app
 
 class FlaskService(win32serviceutil.ServiceFramework):
-    _svc_name_ = "FlaskWebService"
-    _svc_display_name_ = "Flask Web Service"
-    _svc_description_ = "Flask Web Application Service"
+    _svc_name_ = "FlaskWebService1"
+    _svc_display_name_ = "Flask Web Service1"
+    _svc_description_ = "Flask Web Application Service1"
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
