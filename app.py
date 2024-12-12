@@ -4,9 +4,9 @@ import logging
 import io
 import os
 import subprocess
+import sys
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
-import sys
 
 # Third-party imports
 import pandas as pd
@@ -18,26 +18,34 @@ from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
 
 # สร้าง logs directory ถ้ายังไม่มี
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
 
-# ตั้งค่า logging ก่อนสร้าง Flask app
+# กำหนด log file path
+log_file = os.path.join(log_dir, 'app.log')
+stdout_log = os.path.join(log_dir, 'stdout.log')
+
+# ตั้งค่า logging
 logging.basicConfig(
-    filename='logs/app.log',
+    filename=log_file,
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     encoding='utf-8'
 )
 
-# จัดการ stdout encoding
-if hasattr(sys, 'stdout') and sys.stdout is not None:
-    if sys.stdout.encoding != 'utf-8':
+# แก้ไขการจัดการ stdout
+try:
+    if sys.stdout is None or not hasattr(sys.stdout, 'encoding'):
+        sys.stdout = open(stdout_log, 'a', encoding='utf-8')
+    elif sys.stdout.encoding != 'utf-8':
         import codecs
         sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
-else:
-    # ถ้า stdout เป็น None ให้ redirect ไปที่ log file
-    sys.stdout = open('logs/stdout.log', 'a', encoding='utf-8')
+except Exception as e:
+    logging.error(f"Error configuring stdout: {str(e)}")
+    sys.stdout = open(stdout_log, 'a', encoding='utf-8')
 
+# สร้าง Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5e3d17fba71924d29490882d7bfb694f23c1a2ae720c2878'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://info:info123@infosever.thaiddns.com,1451/RemoteAccessDB?driver=ODBC+Driver+17+for+SQL+Server&charset=utf8'
