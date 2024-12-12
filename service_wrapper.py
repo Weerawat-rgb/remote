@@ -40,7 +40,7 @@ class FlaskService(win32serviceutil.ServiceFramework):
     def main(self):
         try:
             logging.info('Starting Flask app...')
-            app.run(host='0.0.0.0', port=5000)
+            app.run(host='0.0.0.0', port=8080)
         except Exception as e:
             logging.error(f'Error starting Flask app: {str(e)}')
             raise
