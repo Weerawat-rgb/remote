@@ -1056,5 +1056,3 @@ def summary(customer_id, branch_id):
 if __name__ == '__main__':
     app.run()
     
-# if __name__ == '__main__':
-#     serve(app, host='0.0.0.0', port=8080)
