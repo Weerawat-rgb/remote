@@ -6,6 +6,7 @@ import os
 import subprocess
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+import sys
 
 # Third-party imports
 import pandas as pd
@@ -15,6 +16,27 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
+
+# สร้าง logs directory ถ้ายังไม่มี
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+# ตั้งค่า logging ก่อนสร้าง Flask app
+logging.basicConfig(
+    filename='logs/app.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    encoding='utf-8'
+)
+
+# จัดการ stdout encoding
+if hasattr(sys, 'stdout') and sys.stdout is not None:
+    if sys.stdout.encoding != 'utf-8':
+        import codecs
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
+else:
+    # ถ้า stdout เป็น None ให้ redirect ไปที่ log file
+    sys.stdout = open('logs/stdout.log', 'a', encoding='utf-8')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5e3d17fba71924d29490882d7bfb694f23c1a2ae720c2878'
