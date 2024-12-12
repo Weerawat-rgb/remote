@@ -37,22 +37,36 @@ class FlaskService(win32serviceutil.ServiceFramework):
 
     def SvcDoRun(self):
         try:
+            logging.info('Service is starting...')
             servicemanager.LogMsg(
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
                 servicemanager.PYS_SERVICE_STARTED,
                 (self._svc_name_, '')
             )
+            
+            # เพิ่ม debug information
+            logging.info(f'Current working directory: {os.getcwd()}')
+            logging.info(f'Python path: {sys.path}')
+            
             self.main()
         except Exception as e:
-            logging.error(f'Service error: {str(e)}')
+            logging.error(f'Service error: {str(e)}', exc_info=True)
             servicemanager.LogErrorMsg(f'Service error: {str(e)}')
+            raise
 
     def main(self):
         try:
             logging.info('Starting Flask app...')
-            app.run(host='0.0.0.0', port=8080)
+            # แทนที่จะรัน app โดยตรง ให้รันใน thread แยก
+            from threading import Thread
+            server = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 8080})
+            server.daemon = True
+            server.start()
+            
+            # รอจนกว่าจะมีการส่งสัญญาณหยุด
+            win32event.WaitForSingleObject(self.stop_event, win32event.INFINITE)
         except Exception as e:
-            logging.error(f'Error starting Flask app: {str(e)}')
+            logging.error(f'Error in main: {str(e)}', exc_info=True)
             raise
 
 if __name__ == '__main__':
