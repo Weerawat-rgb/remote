@@ -6,6 +6,12 @@ import socket
 import sys
 import os
 from app import app  # นำเข้า Flask app จากไฟล์ app.py
+import logging
+logging.basicConfig(
+    filename='C:\\RemoteManage\\flask_service.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 class FlaskService(win32serviceutil.ServiceFramework):
     _svc_name_ = "FlaskWebService"  # ชื่อ service
@@ -32,7 +38,12 @@ class FlaskService(win32serviceutil.ServiceFramework):
         self.main()
 
     def main(self):
-        app.run(host='0.0.0.0', port=5000)
+        try:
+            logging.info('Starting Flask app...')
+            app.run(host='0.0.0.0', port=5000)
+        except Exception as e:
+            logging.error(f'Error starting Flask app: {str(e)}')
+            raise
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
