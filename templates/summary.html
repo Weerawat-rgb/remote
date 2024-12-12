@@ -246,13 +246,44 @@
         const text = document.getElementById(elementId).textContent;
         if (text === '-') return;
 
-        navigator.clipboard.writeText(text).then(() => {
-            // แสดง Toast แจ้งเตือน
+        // ตรวจสอบว่าสามารถใช้ navigator.clipboard ได้หรือไม่
+        if (navigator.clipboard && window.isSecureContext) {
+            // วิธีที่ 1: ใช้ Clipboard API
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('คัดลอกข้อมูลแล้ว', 'success');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                fallbackCopyTextToClipboard(text);
+            });
+        } else {
+            // วิธีที่ 2: ใช้วิธี fallback
+            fallbackCopyTextToClipboard(text);
+        }
+    }
+    function fallbackCopyTextToClipboard(text) {
+        try {
+            // สร้าง textarea ชั่วคราว
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+
+            // ซ่อน textarea
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+
+            // เลือกข้อความและคัดลอก
+            textArea.select();
+            document.execCommand('copy');
+
+            // ลบ textarea
+            textArea.remove();
+
             showToast('คัดลอกข้อมูลแล้ว', 'success');
-        }).catch(err => {
+        } catch (err) {
             console.error('Failed to copy:', err);
             showToast('ไม่สามารถคัดลอกข้อมูลได้', 'error');
-        });
+        }
     }
 
     function showToast(message, type = 'info') {
