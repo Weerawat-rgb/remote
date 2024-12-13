@@ -82,3 +82,34 @@
 2024-12-13 11:14:13,624 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:13] "GET /api/customers/6/logo HTTP/1.1" 200 -
 2024-12-13 11:14:29,582 - INFO -  * Detected change in 'D:\\_myapp\\remote\\app.py', reloading
 2024-12-13 11:14:29,820 - INFO -  * Restarting with stat
+2024-12-13 11:14:36,203 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-12-13 11:14:36,203 - INFO - [33mPress CTRL+C to quit[0m
+2024-12-13 11:14:42,077 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET / HTTP/1.1" 200 -
+2024-12-13 11:14:42,167 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/10 HTTP/1.1" 200 -
+2024-12-13 11:14:42,186 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "[36mGET /static/css/search.css HTTP/1.1[0m" 304 -
+2024-12-13 11:14:42,210 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/19 HTTP/1.1" 200 -
+2024-12-13 11:14:42,211 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/17 HTTP/1.1" 200 -
+2024-12-13 11:14:42,215 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/21 HTTP/1.1" 200 -
+2024-12-13 11:14:42,217 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/20 HTTP/1.1" 200 -
+2024-12-13 11:14:42,218 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/18 HTTP/1.1" 200 -
+2024-12-13 11:14:42,260 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/12 HTTP/1.1" 200 -
+2024-12-13 11:14:42,261 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/14 HTTP/1.1" 200 -
+2024-12-13 11:14:42,265 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/13 HTTP/1.1" 200 -
+2024-12-13 11:14:42,285 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/7 HTTP/1.1" 200 -
+2024-12-13 11:14:42,295 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/6 HTTP/1.1" 200 -
+2024-12-13 11:14:42,309 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:42] "GET /customer-logo/15 HTTP/1.1" 200 -
+2024-12-13 11:14:43,084 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET / HTTP/1.1" 200 -
+2024-12-13 11:14:43,137 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "[36mGET /static/css/search.css HTTP/1.1[0m" 304 -
+2024-12-13 11:14:43,166 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/19 HTTP/1.1" 200 -
+2024-12-13 11:14:43,167 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/20 HTTP/1.1" 200 -
+2024-12-13 11:14:43,167 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/10 HTTP/1.1" 200 -
+2024-12-13 11:14:43,167 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/18 HTTP/1.1" 200 -
+2024-12-13 11:14:43,168 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/17 HTTP/1.1" 200 -
+2024-12-13 11:14:43,204 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/7 HTTP/1.1" 200 -
+2024-12-13 11:14:43,208 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/12 HTTP/1.1" 200 -
+2024-12-13 11:14:43,211 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/14 HTTP/1.1" 200 -
+2024-12-13 11:14:43,215 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/13 HTTP/1.1" 200 -
+2024-12-13 11:14:43,227 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/21 HTTP/1.1" 200 -
+2024-12-13 11:14:43,237 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/15 HTTP/1.1" 200 -
+2024-12-13 11:14:43,250 - INFO - 127.0.0.1 - - [13/Dec/2024 11:14:43] "GET /customer-logo/6 HTTP/1.1" 200 -
