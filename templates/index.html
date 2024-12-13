@@ -15,7 +15,7 @@
         <h1 class="text-3xl font-bold mb-6">Remote Access Manager</h1>
 
         <!-- แสดงรายการลูกค้า -->
-        <div class="mt-8 grid gap-6">
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             {% if customers %}
             {% for customer in customers %}
             <div class="bg-white p-6 rounded-lg shadow">
@@ -38,43 +38,33 @@
                         {% else %}
                         <div
                             class="w-24 h-24 flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
-                            <span class="text-sm text-gray-400">No
-                                Logo</span>
+                            <span class="text-sm text-gray-400">No Logo</span>
                         </div>
                         {% endif %}
                     </div>
+
                     <!-- Customer information section -->
-                    <div class="flex-1">
+                    <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-start mb-4">
-                            <h2 class="text-xl font-bold">{{ customer.name
-                                }}</h2>
+                            <h2 class="text-xl font-bold truncate">{{ customer.name }}</h2>
                             <a href="#" data-customer-id="{{ customer.id }}"
                                 onclick="openEditModal(this.dataset.customerId); return false;"
-                                class="text-gray-500 hover:text-blue-600 transition-colors" title="แก้ไขข้อมูล">
+                                class="text-gray-500 hover:text-blue-600 transition-colors flex-shrink-0 ml-2"
+                                title="แก้ไขข้อมูล">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                             </a>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4">
                             <div>
-                                <p><strong>ผู้ติดต่อ:</strong> {{
-                                    customer.hq_contact_name }}</p>
-                                <p><strong>เบอร์โทร:</strong> {{
-                                    customer.hq_contact_phone }}</p>
-                                <p><strong>อีเมล:</strong> {{
-                                    customer.hq_contact_email }}</p>
+                                <p><strong>ผู้ติดต่อ:</strong> {{ customer.hq_contact_name }}</p>
+                                <p><strong>เบอร์โทร:</strong> {{ customer.hq_contact_phone }}</p>
+                                <p><strong>อีเมล:</strong> {{ customer.hq_contact_email }}</p>
                             </div>
                             <div>
-                                <!-- <p><strong>ที่อยู่:</strong> {{
-                                    customer.hq_address }}</p>
-                                <p><strong>หมายเลขประจำตัวผู้เสียภาษี:</strong>
-                                    {{
-                                    customer.tax_number }}</p> -->
-                                <p><strong>จำนวนสาขา:</strong>
-                                    {{ customer.active_branches_count }} สาขา
-                                </p>
+                                <p><strong>จำนวนสาขา:</strong> {{ customer.active_branches_count }} สาขา</p>
                                 <p>
                                     <strong>รายละเอียด:</strong>
                                     {% if customer.website_url %}
@@ -86,9 +76,7 @@
                                     -
                                     {% endif %}
                                 </p>
-                                <p><strong>หมายเหตุ:</strong>
-                                    {{ customer.notes }}
-                                </p>
+                                <p><strong>หมายเหตุ:</strong> {{ customer.notes or '-' }}</p>
                             </div>
                         </div>
                         <div class="mt-4">
