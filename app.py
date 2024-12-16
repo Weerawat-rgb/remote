@@ -1,12 +1,14 @@
 # Standard library imports
+from flask_cors import CORS
 from waitress import serve
 import logging
 import io
 import os
-import subprocess
+# import subprocess
 import sys
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from devices_warranty import customer_search
 
 # Third-party imports
 import pandas as pd
@@ -16,6 +18,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
+
 
 # สร้าง logs directory ถ้ายังไม่มี
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -50,6 +53,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '5e3d17fba71924d29490882d7bfb694f23c1a2ae720c2878'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://info:info123@infosever.thaiddns.com,1451/RemoteAccessDB?driver=ODBC+Driver+17+for+SQL+Server&charset=utf8'
 app.config['JSON_AS_ASCII'] = False
+
+logging.getLogger('werkzeug').setLevel(logging.INFO)
+
+CORS(app)
+app.register_blueprint(customer_search)
+
 
 # UTF-8 configuration
 import sys
@@ -140,6 +149,10 @@ def index():
     except Exception as e:
         print(f"Error: {str(e)}")
         return str(e)
+
+@app.route('/devices_warranty')
+def devices_warranty():
+    return render_template('devices_warranty.html')
     
 @app.route('/live-search')
 def live_search():
@@ -238,7 +251,7 @@ def add_customer():
             hq_contact_phone = request.form.get('hq_contact_phone')
             hq_contact_email = request.form.get('hq_contact_email')
             hq_address = request.form.get('hq_address')
-            tax_number = request.form.get('tax_number')
+            # tax_number = request.form.get('tax_number')
             notes = request.form.get('notes')
             website_url = request.form.get('website_url')
             
@@ -256,7 +269,7 @@ def add_customer():
                 hq_contact_phone=hq_contact_phone,
                 hq_contact_email=hq_contact_email,
                 hq_address=hq_address,
-                tax_number=tax_number,
+                # tax_number=tax_number,
                 notes=notes,
                 website_url=website_url
             )
@@ -272,12 +285,10 @@ def add_customer():
             db.session.add(new_customer)
             db.session.commit()
             flash('เพิ่มข้อมูลลูกค้าสำเร็จ', 'success')
-            return redirect(url_for('index'))
+            return jsonify({'status': 'success', 'message': 'บันทึกข้อมูลสำเร็จ'})
         except Exception as e:
             db.session.rollback()
-            flash(f'เกิดข้อผิดพลาด: {str(e)}', 'error')
-            print(f"Error: {str(e)}")
-            return redirect(url_for('add_customer'))
+            return jsonify({'status': 'error', 'message': str(e)}), 400
             
     return render_template('add_customer.html')
 
@@ -1082,5 +1093,8 @@ def summary(customer_id, branch_id):
                              details=str(e)), 500
             
 if __name__ == '__main__':
-    app.run()
+    print('\n=================================')
+    print('Server is running at: http://127.0.0.1:5000')
+    print('=================================\n')
+    app.run(host='127.0.0.1', port=5000, debug=False)
     

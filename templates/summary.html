@@ -34,14 +34,14 @@
                                     <td class="py-2.5 text-gray-600 font-medium w-1/4">ชื่อลูกค้า:</td>
                                     <td class="py-2.5 font-medium">{{ customer.name }}</td>
                                 </tr>
-                                <tr>
+                                <!-- <tr>
                                     <td class="py-2.5 text-gray-600 font-medium">เลขประจำตัวผู้เสียภาษี:</td>
                                     <td class="py-2.5">{{ customer.tax_number or '-' }}</td>
-                                </tr>
-                                <tr>
+                                </tr> -->
+                                <!-- <tr>
                                     <td class="py-2.5 text-gray-600 font-medium">ที่อยู่:</td>
                                     <td class="py-2.5">{{ customer.hq_address or '-' }}</td>
-                                </tr>
+                                </tr> -->
                                 <tr>
                                     <td class="py-2.5 text-gray-600 font-medium">ผู้ติดต่อ:</td>
                                     <td class="py-2.5">{{ customer.hq_contact_name or '-' }}</td>
@@ -53,6 +53,10 @@
                                 <tr>
                                     <td class="py-2.5 text-gray-600 font-medium">อีเมล:</td>
                                     <td class="py-2.5">{{ customer.hq_contact_email or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 text-gray-600 font-medium">หมายเหตุ:</td>
+                                    <td class="py-2.5">{{ customer.notes or '-' }}</td>
                                 </tr>
                                 {% if customer.website_url %}
                                 <tr>

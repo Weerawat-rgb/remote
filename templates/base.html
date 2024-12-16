@@ -6,7 +6,8 @@
         <title>ระบบจัดการลูกค้า</title>
         <!-- Tailwind CSS via CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+        <link rel="stylesheet"
+            href="{{ url_for('static', filename='css/search.css') }}">
     </head>
     <body class="bg-gray-100">
         <!-- Fixed Navigation -->
@@ -28,10 +29,14 @@
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 หน้าหลัก
                             </a>
-                            <a href="{{ url_for('add_customer') }}"
+                            <a href="{{ url_for('devices_warranty') }}"
+                                class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
+                                รายการอุปกรณ์
+                            </a>
+                            <!-- <a href="{{ url_for('add_customer') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 เพิ่มลูกค้า
-                            </a>
+                            </a> -->
                         </div>
                     </div>
 
