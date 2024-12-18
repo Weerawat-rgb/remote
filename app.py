@@ -9,7 +9,6 @@ import sys
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from devices_warranty import customer_search
-
 # Third-party imports
 import pandas as pd
 from flask import Flask, flash, jsonify, redirect, render_template, request, send_file, url_for
@@ -137,7 +136,28 @@ class Device(db.Model):
     isactive = db.Column(db.Boolean, nullable=True, default=True)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
         
-# Routes
+class SpareType(db.Model):
+    __tablename__ = 'spare_types'
+    type_id = db.Column(db.Integer, primary_key=True)
+    type_name = db.Column(db.String(20), nullable=False)
+    spare_parts = db.relationship('SparePart', backref='type', lazy=True)
+    
+class SpareModel(db.Model):
+    __tablename__ = 'spare_model'
+    model_id = db.Column(db.Integer, primary_key=True)
+    model_name = db.Column(db.String(100), nullable=False)
+    spare_parts = db.relationship('SparePart', backref='model', lazy=True)
+
+class SparePart(db.Model):
+    __tablename__ = 'spare_parts'
+    id = db.Column(db.Integer, primary_key=True)
+    spare_type_id = db.Column(db.Integer, db.ForeignKey('spare_types.type_id'), nullable=False)
+    model_id = db.Column(db.Integer, db.ForeignKey('spare_model.model_id'), nullable=False)  # เพิ่ม FK
+    serial_number = db.Column(db.String(100), unique=True, nullable=False)
+    notes = db.Column(db.Text)
+    isactive = db.Column(db.Boolean, nullable=True, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 @app.route('/')
@@ -1000,63 +1020,6 @@ def import_branch_devices(customer_id):
             'message': f'เกิดข้อผิดพลาด: {str(e)}'
         }), 500                        
                                 
-# @app.route('/api/branches/template')
-# def get_branch_template():
-#     try:
-#         # สร้าง DataFrame ว่างพร้อมคอลัมน์
-#         df = pd.DataFrame(columns=[
-#             'รหัสสาขา',
-#             'ชื่อสาขา',
-#             'ชื่อผู้ติดต่อ',
-#             'เบอร์โทร'
-#         ])
-        
-#         # เพิ่มตัวอย่างข้อมูล 1 แถว
-#         df.loc[0] = [
-#             'B001',  # ตัวอย่างรหัสสาขา
-#             'สาขาตัวอย่าง',  # ตัวอย่างชื่อสาขา
-#             'ชื่อผู้ติดต่อ',  # ตัวอย่างชื่อผู้ติดต่อ
-#             '02-xxx-xxxx'  # ตัวอย่างเบอร์โทร
-#         ]
-        
-#         # สร้าง Excel file ใน memory
-#         output = io.BytesIO()
-#         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-#             # เขียน DataFrame ลงใน Excel
-#             df.to_excel(writer, index=False, sheet_name='Template')
-            
-#             # ปรับความกว้างคอลัมน์
-#             worksheet = writer.sheets['Template']
-#             worksheet.set_column('A:D', 20)  # ตั้งความกว้างคอลัมน์ A ถึง D เป็น 20
-            
-#             # จัด format
-#             workbook = writer.book
-#             header_format = workbook.add_format({
-#                 'bold': True,
-#                 'font_color': 'white',
-#                 'bg_color': '#4B5563',
-#                 'border': 1
-#             })
-            
-#             # ใส่ format ให้ header
-#             for col_num, value in enumerate(df.columns.values):
-#                 worksheet.write(0, col_num, value, header_format)
-        
-#         output.seek(0)
-        
-#         return send_file(
-#             output,
-#             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-#             as_attachment=True,
-#             download_name='branch_import_template.xlsx'
-#         )
-        
-#     except Exception as e:
-#         return jsonify({
-#             'success': False,
-#             'message': str(e)
-#         }), 500
-        
 @app.route('/summary/<int:customer_id>/<int:branch_id>')
 def summary(customer_id, branch_id):
     try:
@@ -1091,10 +1054,111 @@ def summary(customer_id, branch_id):
         return render_template('error.html', 
                              error_message="เกิดข้อผิดพลาดในการโหลดข้อมูล",
                              details=str(e)), 500
+
+@app.route('/manage/spare')
+def manage_spare():
+    try:
+        spares = db.session.query(
+            SparePart,
+            SpareType,
+            SpareModel
+        ).join(
+            SpareType
+        ).join(
+            SpareModel
+        ).filter(
+            SparePart.isactive == 1  
+        ).all()
+
+        spare_types = SpareType.query.all()
+        models = SpareModel.query.order_by(SpareModel.model_name).all()
+        
+        return render_template('spare/manage.html', 
+                             spares=spares,
+                             spare_types=spare_types,
+                             models=models)
+    except Exception as e:
+        print(f"Error in manage_spare: {str(e)}")
+        db.session.rollback()
+        flash('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + str(e), 'error')
+        return redirect(url_for('index'))
+            
+@app.route('/manage/spare/add', methods=['POST'])
+def add_spare():
+    try:
+        data = request.get_json()
+        
+        # เช็ค serial number ซ้ำเฉพาะที่ยัง active
+        existing_spare = SparePart.query.filter(
+            SparePart.serial_number == data['serial_number'],
+            SparePart.isactive == 1
+        ).first()
+        
+        if existing_spare:
+            return jsonify({
+                'status': 'error',
+                'message': f'Serial number {data["serial_number"]} มีอยู่ในระบบแล้ว กรุณาตรวจสอบอีกครั้ง'
+            }), 400
+
+        # ถ้าไม่ซ้ำค่อยบันทึก
+        spare = SparePart(
+            spare_type_id=data['spare_type'],
+            model_id=data['model_id'],
+            serial_number=data['serial_number'],
+            notes=data.get('notes', ''),
+            isactive=1
+        )
+        
+        db.session.add(spare)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'บันทึกข้อมูลสำเร็จ'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': f'เกิดข้อผิดพลาด: {str(e)}'
+        }), 500
+                            
+@app.route('/manage/spare/edit/<int:id>', methods=['GET', 'POST'])
+def edit_spare(id):
+    spare = SparePart.query.get_or_404(id)
+    if request.method == 'POST':
+        try:
+            spare.spare_type_id = request.form['spare_type']
+            spare.model = request.form['model']
+            spare.serial_number = request.form['serial_number']
+            spare.notes = request.form['notes']
+            db.session.commit()
+            flash('Spare part updated successfully', 'success')
+            return redirect(url_for('manage_spare'))
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
+            db.session.rollback()
+
+    spare_types = SpareType.query.all()
+    return render_template('spare/edit.html', spare=spare, spare_types=spare_types)
+
+@app.route('/manage/spare/delete/<int:id>')
+def delete_spare(id):
+    spare = SparePart.query.get_or_404(id)
+    try:
+        spare.isactive = 0  # Soft delete
+        db.session.commit()
+        flash('ลบข้อมูลสำเร็จ', 'success')
+    except Exception as e:
+        flash(f'เกิดข้อผิดพลาด: {str(e)}', 'danger')
+        db.session.rollback()
+    return redirect(url_for('manage_spare'))
+
             
 if __name__ == '__main__':
     print('\n=================================')
     print('Server is running at: http://127.0.0.1:5000')
     print('=================================\n')
-    app.run(host='127.0.0.1', port=5000, debug=False)
+    app.run(host='127.0.0.1', port=5000, debug=True)
     
