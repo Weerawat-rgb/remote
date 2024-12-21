@@ -25,10 +25,6 @@
                         </div>
                         <!-- Navigation Links -->
                         <div class="hidden md:ml-6 md:flex md:space-x-8">
-                            <a href="{{ url_for('index') }}"
-                                class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
-                                หน้าหลัก
-                            </a>
                             <a href="{{ url_for('devices_warranty') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 รายการอุปกรณ์
@@ -39,8 +35,16 @@
                             </a>
                             <a href="{{ url_for('manage_repair') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
-                                รายการแจ้งซ่อม
+                                ส่งซ่อม
                             </a>
+                            <a href="{{ url_for('index') }}"
+                                class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
+                                รายชื่อโปรเจค
+                            </a>
+                            <!-- <a href="{{ url_for('manage_repair') }}"
+                                class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
+                                รายการแจ้งซ่อม
+                            </a> -->
                             <!-- <a href="{{ url_for('add_customer') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 เพิ่มลูกค้า

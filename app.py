@@ -158,6 +158,33 @@ class SparePart(db.Model):
     isactive = db.Column(db.Boolean, nullable=True, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+class RepairRequest(db.Model):
+    __tablename__ = 'repair_requests'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(255))
+    model_name = db.Column(db.String(255))
+    serial_number = db.Column(db.String(255))
+    supplier_code = db.Column(db.String(255))
+    symptoms = db.Column(db.Text)
+    receive_date = db.Column(db.DateTime)
+    supplier_send_date = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    isfinalize = db.Column(db.Boolean)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'model_name': self.model_name,
+            'serial_number': self.serial_number,
+            'supplier_code': self.supplier_code,
+            'symptoms': self.symptoms,
+            'receive_date': self.receive_date.strftime('%Y-%m-%d %H:%M:%S') if self.receive_date else None,
+            'supplier_send_date': self.supplier_send_date.strftime('%Y-%m-%d %H:%M:%S') if self.supplier_send_date else None,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
+            'isfinalize': self.isfinalize
+        }
 
 
 @app.route('/')
@@ -1155,112 +1182,92 @@ def delete_spare(id):
         db.session.rollback()
     return redirect(url_for('manage_spare'))
 
+from flask import render_template, jsonify
+from datetime import datetime
+import pyodbc  # For SQL Server connection
+
+def get_db_connection():
+    """Establish database connection"""
+    connection_string = (
+        "DRIVER={SQL Server};"
+        "SERVER=your_server_name;"
+        "DATABASE=RemoteAccessDB;"
+        "Trusted_Connection=yes;"
+    )
+    return pyodbc.connect(connection_string)
+
 @app.route('/spare/repair')
 def manage_repair():
-    return render_template('spare/repair.html')
-
-@app.route('/api/repair-stats')
-def get_repair_stats():
     try:
-        query = text("""
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN status_value = 'อยู่ระหว่างซ่อมแซม' AND isfinalize = 0 THEN 1 ELSE 0 END) as in_progress,
-                SUM(CASE WHEN status_value = 'ส่งคืนเรียบร้อย' THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN status_value IN ('ไม่สามารถซ่อมได้', 'ไม่อนุมัติซ่อม') THEN 1 ELSE 0 END) as cancelled
-            FROM repair_requests r
-            LEFT JOIN (
-                SELECT repair_id, status_value
-                FROM status_history
-                WHERE id IN (
-                    SELECT MAX(id)
-                    FROM status_history
-                    WHERE status_type = 'repair'
-                    GROUP BY repair_id
-                )
-            ) latest_status ON r.id = latest_status.repair_id
-        """)
-        
-        result = db.session.execute(query).first()
-        
-        return jsonify({
-            'success': True,
-            'stats': {
-                'total': result.total or 0,
-                'in_progress': result.in_progress or 0,
-                'completed': result.completed or 0,
-                'cancelled': result.cancelled or 0
-            }
-        })
+        repairs = RepairRequest.query.order_by(RepairRequest.created_at.desc()).limit(1000).all()
+        return render_template('spare/repair.html', repairs=[repair.to_dict() for repair in repairs])
     except Exception as e:
-        print(f"Error getting repair stats: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        print(f"Database error: {str(e)}")
+        return render_template('spare/repair.html', error="Unable to fetch repair data")
 
-@app.route('/api/repair-search')
+@app.route('/spare/repair/search')
 def search_repairs():
     try:
-        search_type = request.args.get('type', '')
-        query = request.args.get('query', '')
-
-        sql_query = text("""
-            SELECT DISTINCT
-                r.model_name,
-                r.serial_number,
-                r.supplier_code,
-                r.symptoms,
-                r.receive_date,
-                r.supplier_send_date,
-                r.isfinalize,
-                latest_status.status_value as current_status,
-                d.FirstName,
-                d.InsertDate
-            FROM repair_requests r
-            LEFT JOIN (
-                SELECT repair_id, status_value
-                FROM status_history
-                WHERE id IN (
-                    SELECT MAX(id)
-                    FROM status_history
-                    WHERE status_type = 'repair'
-                    GROUP BY repair_id
-                )
-            ) latest_status ON r.id = latest_status.repair_id
-            LEFT JOIN devices d ON r.model_name = d.itemcode
-            WHERE 
-                CASE 
-                    WHEN :search_type = 'serial' THEN r.serial_number LIKE :search_query
-                    WHEN :search_type = 'model' THEN r.model_name LIKE :search_query
-                    WHEN :search_type = 'user' THEN d.FirstName LIKE :search_query
-                    ELSE 1=1
-                END
-            ORDER BY r.created_at DESC
-        """)
+        serial = request.args.get('serial', '')
+        model = request.args.get('model', '')
         
-        search_param = f"%{query}%" if query else "%"
-        results = db.session.execute(sql_query, {
-            'search_type': search_type,
-            'search_query': search_param
-        }).fetchall()
+        query = RepairRequest.query
+        
+        if serial:
+            query = query.filter(RepairRequest.serial_number.ilike(f'%{serial}%'))
+        if model:
+            query = query.filter(RepairRequest.model_name.ilike(f'%{model}%'))
+            
+        repairs = query.order_by(RepairRequest.created_at.desc()).limit(1000).all()
         
         return jsonify({
-            'success': True,
-            'data': [{
-                'model_name': row.model_name,
-                'serial_number': row.serial_number,
-                'supplier_code': row.supplier_code,
-                'symptoms': row.symptoms,
-                'receive_date': row.receive_date.isoformat() if row.receive_date else None,
-                'supplier_send_date': row.supplier_send_date.isoformat() if row.supplier_send_date else None,
-                'isfinalize': row.isfinalize,
-                'current_status': row.current_status,
-                'user_name': row.FirstName,
-                'purchase_date': row.InsertDate.isoformat() if row.InsertDate else None
-            } for row in results]
+            'status': 'success',
+            'data': [repair.to_dict() for repair in repairs]
         })
     except Exception as e:
-        print(f"Error searching repairs: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
+# Add/Update endpoint
+@app.route('/spare/repair', methods=['POST'])
+def add_update_repair():
+    try:
+        data = request.json
+        
+        if 'id' in data:
+            # Update existing repair
+            repair = RepairRequest.query.get(data['id'])
+            if not repair:
+                return jsonify({'status': 'error', 'message': 'Repair not found'}), 404
+        else:
+            # Create new repair
+            repair = RepairRequest()
+            
+        # Update fields
+        for field in ['model_name', 'serial_number', 'supplier_code', 'symptoms', 'isfinalize']:
+            if field in data:
+                setattr(repair, field, data[field])
+                
+        # Handle dates
+        for date_field in ['receive_date', 'supplier_send_date']:
+            if date_field in data and data[date_field]:
+                setattr(repair, date_field, datetime.strptime(data[date_field], '%Y-%m-%d %H:%M:%S'))
+        
+        db.session.add(repair)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'data': repair.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
             
 if __name__ == '__main__':
     print('\n=================================')
