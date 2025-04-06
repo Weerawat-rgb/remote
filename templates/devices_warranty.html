@@ -53,6 +53,8 @@
                                 วันที่ซื้อ</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 อายุการใช้งาน</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ผู้จัดจำหน่าย</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
@@ -125,6 +127,9 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm ${diffDays <= 365 ? 'text-green-600' : 'text-red-600'} font-medium">
                                         ${diffDays} วัน
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
+                                        ${item.SupplierName || '-'}
                                     </td>
                                 </tr>
                             `;

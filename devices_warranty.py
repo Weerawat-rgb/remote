@@ -50,22 +50,26 @@ def search():
 
         if search_type == 'serial':
             sql = """
-                SELECT i.itemcode, si.ItemDesc, c.Acct, c.FirstName, CONVERT(date,si.InsertDate) as InsertDate 
+                SELECT sp.SupplierName,i.ItemId,i.itemcode, si.ItemDesc, c.Acct, c.FirstName, CONVERT(date,si.InsertDate) as InsertDate 
                 FROM SaleItem si
                 INNER JOIN Sale s ON s.SaleId = si.SaleId
                 INNER JOIN Customer c ON c.CustomerId = s.CustomerId
                 INNER JOIN Items i ON i.ItemId = si.ItemId
+				LEFT JOIN SupplierXRef sx on sx.ItemId = i.ItemId and sx.IsDefault = 1
+				LEFT JOIN Supplier sp on sp.SupplierId = sx.SupplierId
                 WHERE i.itemcode LIKE ? OR si.ItemDesc LIKE ?
             """
             search_param = f'%{query}%'
             cursor.execute(sql, (search_param, search_param))
         else:
             sql = """
-                SELECT i.itemcode, si.ItemDesc, c.Acct, c.FirstName, CONVERT(date,si.InsertDate) as InsertDate 
+                SELECT sp.SupplierName,i.ItemId,i.itemcode, si.ItemDesc, c.Acct, c.FirstName, CONVERT(date,si.InsertDate) as InsertDate 
                 FROM SaleItem si
                 INNER JOIN Sale s ON s.SaleId = si.SaleId
                 INNER JOIN Customer c ON c.CustomerId = s.CustomerId
                 INNER JOIN Items i ON i.ItemId = si.ItemId
+				LEFT JOIN SupplierXRef sx on sx.ItemId = i.ItemId and sx.IsDefault = 1
+				LEFT JOIN Supplier sp on sp.SupplierId = sx.SupplierId
                 WHERE c.FirstName LIKE ? OR c.LastName LIKE ?
             """
             search_param = f'%{query}%'
