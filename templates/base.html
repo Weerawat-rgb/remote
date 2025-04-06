@@ -11,48 +11,45 @@
     </head>
     <body class="bg-gray-100">
         <!-- Fixed Navigation -->
-        <nav class="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
+        <!-- <nav class="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex justify-between h-16">
-                    <!-- Left side: Logo and Nav Links -->
                     <div class="flex flex-1">
-                        <!-- Logo
+                         Logo
                         <div class="flex-shrink-0 flex items-center">
                             <a href="{{ url_for('index') }}"
                                 class="text-xl font-bold text-indigo-600">
                                 ระบบจัดการลูกค้า
                             </a>
-                        </div> -->
-                        <!-- Navigation Links -->
+                        </div> 
                         <div class="hidden md:ml-6 md:flex md:space-x-8">
-                            <a href="{{ url_for('devices_warranty') }}"
+                             <a href="{{ url_for('devices_warranty') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 รายการอุปกรณ์
-                            </a>
-                            <a href="{{ url_for('manage_spare') }}"
+                            </a> -->
+                            <!-- <a href="{{ url_for('manage_spare') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 จัดการอุปกรณ์ Spare
                             </a>
                             <a href="{{ url_for('manage_repair') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 ส่งซ่อม
-                            </a>
+                            </a> 
                             <a href="{{ url_for('index') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 รายชื่อโปรเจค
                             </a>
-                            <!-- <a href="{{ url_for('manage_repair') }}"
+                             <a href="{{ url_for('manage_repair') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 รายการแจ้งซ่อม
                             </a> -->
                             <!-- <a href="{{ url_for('add_customer') }}"
                                 class="inline-flex items-center px-1 pt-1 text-gray-900 border-b-2 border-transparent hover:border-indigo-500">
                                 เพิ่มลูกค้า
-                            </a> -->
+                            </a> 
                         </div>
                     </div>
 
-                    <!-- Right side: Search Bar -->
                     <div class="flex-1 flex items-center justify-end">
                         <div class="max-w-lg w-full lg:max-w-xs relative">
                             <div class="relative">
@@ -73,7 +70,6 @@
                                     placeholder="ค้นหาทุกอย่าง..."
                                     aria-label="ค้นหา">
                             </div>
-                            <!-- Search Results Dropdown -->
                             <div id="search-results"
                                 class="absolute w-full mt-1 bg-white shadow-lg rounded-md overflow-hidden hidden">
                             </div>
@@ -81,7 +77,7 @@
                     </div>
                 </div>
             </div>
-        </nav>
+        </nav> -->
         <!-- Main Content with top padding to prevent overlap -->
         <main class="pt-24 pb-6">
             {% with messages = get_flashed_messages(with_categories=true) %}
