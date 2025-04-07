@@ -50,7 +50,7 @@ except Exception as e:
 # สร้าง Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5e3d17fba71924d29490882d7bfb694f23c1a2ae720c2878'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://info:info123@infosever1.thaiddns.com,1451/RemoteAccessDB?driver=ODBC+Driver+17+for+SQL+Server&charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://info:info123@infosever.thaiddns.com,1451/RemoteAccessDB?driver=ODBC+Driver+17+for+SQL+Server&charset=utf8'
 app.config['JSON_AS_ASCII'] = False
 
 logging.getLogger('werkzeug').setLevel(logging.INFO)
