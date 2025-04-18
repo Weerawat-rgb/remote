@@ -285,6 +285,26 @@ def get_customer_logo(id):
         )
     return '', 404
 
+@app.route('/customer/search')
+def customer_search():
+    query = request.args.get('query', '').strip()
+    
+    if not query:
+        # If no query provided, redirect to customers list
+        return redirect(url_for('customers'))
+    
+    # Search for customers with names containing the query (case-insensitive)
+    customers = Customer.query.filter(Customer.name.ilike(f'%{query}%')).all()
+    
+    # If there's only one result, go directly to that customer's page
+    if len(customers) == 1:
+        return redirect(url_for('customer_detail', id=customers[0].id))
+    
+    # If multiple results, show the list of matching customers
+    return render_template('customer_search_results.html', 
+                          customers=customers, 
+                          query=query)
+
 @app.route('/customers/add', methods=['GET', 'POST'])
 def add_customer():
     if request.method == 'POST':

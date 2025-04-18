@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -15,24 +14,45 @@
     <body class="bg-gray-100">
         <div class="container mx-auto px-4 py-8">
             <h1 class="text-3xl font-bold mb-6">Remote Access Manager</h1>
-            <!-- Add Customer Button -->
+
+            <div class="mb-6">
+                <form id="customerSearchForm" class="flex space-x-2">
+                    <div class="relative flex-grow">
+                        <input type="text" name="query" id="customerSearch"
+                            placeholder="ค้นหาจากชื่อลูกค้า..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <svg class="w-5 h-5" fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <button type="button"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        ค้นหา
+                    </button>
+                </form>
+            </div>
+
             <button
                 onclick="openAddCustomerModal()"
                 class="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                 <i class="fas fa-plus mr-2"></i>เพิ่มลูกค้าใหม่
             </button>
 
-            <!-- แสดงรายการลูกค้า -->
             <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {% if customers %}
                 {% for customer in customers %}
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <!-- Header with name and edit button -->
                     <div class="flex items-start space-x-6">
-                        <!-- Logo section -->
                         <div class="flex-shrink-0 mr-6">
                             {% if customer.logo %}
-                            <!-- Debug info -->
                             {% if debug %}
                             <div class="text-xs text-gray-500">
                                 <p>Has logo: {{ customer.logo is not none }}</p>
@@ -54,7 +74,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Customer information section -->
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-start mb-4">
                                 <h2 class="text-xl font-bold truncate">{{
@@ -75,18 +94,8 @@
                             </div>
                             <div class="grid grid-cols-1 gap-4">
                                 <div>
-                                    <!-- <p><strong>ผู้ติดต่อ:</strong> {{
-                                        customer.hq_contact_name }}</p>
-                                    <p><strong>เบอร์โทร:</strong> {{
-                                        customer.hq_contact_phone }}</p>
-                                    <p><strong>อีเมล:</strong> {{
-                                        customer.hq_contact_email }}</p> -->
-                                </div> 
-                                <div> 
-                                 <!-- <p>
-                                    <strong>จำนวนสาขา:</strong> {{
-                                        customer.active_branches_count }}
-                                        สาขา</p> -->
+                                </div>
+                                <div>
                                     <p>
                                         <strong>รายละเอียด:</strong>
                                         {% if customer.website_url %}
@@ -118,24 +127,20 @@
             </div>
         </div>
 
-        <!-- Modal add customer -->
         <div id="modal-backdrop"
             class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden"
             onclick="closeModal()">
         </div>
 
-        <!-- Modal Container -->
         <div id="modal"
             class="fixed inset-0 overflow-y-auto hidden"
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true">
             <div class="flex items-center justify-center min-h-screen p-4">
-                <!-- Modal Content -->
                 <div
                     class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full"
                     onclick="event.stopPropagation()">
-                    <!-- Modal Header -->
                     <div class="px-6 py-4 border-b border-gray-200">
                         <div class="flex items-center justify-between">
                             <h2
@@ -155,13 +160,11 @@
                             class="mt-1 text-sm text-gray-600">กรุณากรอกข้อมูลให้ครบถ้วน</p>
                     </div>
 
-                    <!-- Modal Body -->
                     <div class="px-6 py-4">
                         <form method="POST"
                             action="{{ url_for('add_customer') }}"
                             enctype="multipart/form-data"
                             class="space-y-6">
-                            <!-- โลโก้บริษัท -->
                             <div>
                                 <label
                                     class="block text-sm font-medium text-gray-700 mb-2">โลโก้</label>
@@ -234,24 +237,6 @@
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 </div>
 
-                                <!-- <div>
-                                    <label for="hq_address"
-                                        class="block text-sm font-medium text-gray-700">ที่อยู่</label>
-                                    <textarea id="hq_address"
-                                        name="hq_address"
-                                        rows="3"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                                </div> -->
-
-                                <!-- <div>
-                                    <label for="tax_number"
-                                        class="block text-sm font-medium text-gray-700">เลขประจำตัวผู้เสียภาษี</label>
-                                    <input type="text"
-                                        id="tax_number"
-                                        name="tax_number"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div> -->
-
                                 <div>
                                     <label for="notes"
                                         class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
@@ -273,7 +258,6 @@
                                 </div>
                             </div>
 
-                            <!-- Modal Footer -->
                             <div
                                 class="flex justify-end space-x-2 pt-4 border-t border-gray-200">
                                 <button type="button"
@@ -292,11 +276,9 @@
             </div>
         </div>
 
-        <!-- Edit Customer Modal -->
         <div id="editCustomerModal"
             class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden items-center justify-center z-50">
             <div class="bg-white rounded-lg max-w-2xl w-full mx-4">
-                <!-- Modal Header -->
                 <div class="flex justify-between items-center p-4 border-b">
                     <h3 class="text-lg font-semibold">แก้ไขข้อมูลลูกค้า</h3>
                     <button onclick="closeEditModal()"
@@ -310,7 +292,6 @@
                     </button>
                 </div>
 
-                <!-- Modal Content -->
                 <form id="editCustomerForm" class="p-4">
                     <input type="hidden" id="customerId" name="customer_id">
 
@@ -321,43 +302,31 @@
                             <input type="text" id="customerName" name="name"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
-
+                        <!-- 
                         <div>
                             <label for="hq_contact_name"
                                 class="block text-sm font-medium text-gray-700">ชื่อผู้ติดต่อ</label>
                             <input type="text" id="contactName"
                                 name="hq_contact_name"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
+                        </div> -->
 
-                        <div>
+                        <!-- <div>
                             <label for="hq_contact_phone"
                                 class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
                             <input type="text" id="contactPhone"
                                 name="hq_contact_phone"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
+                        </div> -->
 
-                        <div>
+                        <!-- <div>
                             <label for="hq_contact_email"
                                 class="block text-sm font-medium text-gray-700">อีเมล</label>
                             <input type="email" id="contactEmail"
                                 name="hq_contact_email"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-
-                        <!-- <div>
-                            <label for="hq_address"
-                                class="block text-sm font-medium text-gray-700">ที่อยู่</label>
-                            <textarea id="address" name="hq_address" rows="3"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                        </div>
-                        <div>
-                            <label for="tax_number"
-                                class="block text-sm font-medium text-gray-700">เลขประจำตัวผู้เสียภาษี</label>
-                            <input type="text" id="tax_number" name="tax_number"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div> -->
+
                         <div>
                             <label for="notes"
                                 class="block text-sm font-medium text-gray-700">
@@ -378,12 +347,10 @@
                         </div>
 
                     </div>
-                    <!-- Logo Upload Section -->
                     <div class="mb-6">
                         <label
                             class="block text-sm font-medium text-gray-700 mb-2">โลโก้</label>
                         <div class="flex items-start space-x-4">
-                            <!-- Preview current logo -->
                             <div class="flex-shrink-0">
                                 <div id="logoPreview"
                                     class="w-24 h-24 border border-gray-200 rounded-lg overflow-hidden">
@@ -392,7 +359,6 @@
                                 </div>
                             </div>
 
-                            <!-- Upload input -->
                             <div class="flex-1">
                                 <div class="mt-1 flex items-center">
                                     <label class="block">
@@ -411,7 +377,6 @@
                     </div>
 
                     <div class="mt-4 flex justify-between space-x-2">
-                        <!-- ปุ่มยกเลิก (ชิดซ้าย) -->
                         <div>
                             <button type="button" id="deleteCustomerBtn"
                                 onclick="confirmDelete()"
@@ -420,7 +385,6 @@
                             </button>
                         </div>
 
-                        <!-- กลุ่มปุ่มด้านขวา -->
                         <div class="flex space-x-2">
                             <button type="submit"
                                 class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
@@ -432,7 +396,6 @@
                             </button>
                         </div>
                     </div>
-                    <!-- เพิ่ม Dialog ยืนยันการลบ -->
                     <div id="deleteConfirmDialog"
                         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div
@@ -469,288 +432,8 @@
             </div>
         </div>
 
-        <script>
-        function closeEditModal() {
-            document.getElementById('editCustomerModal').classList.add('hidden');
-            document.getElementById('editCustomerModal').classList.remove('flex');
-        }
-
-        document.getElementById('editCustomerForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const customerId = formData.get('customer_id');
-
-            fetch(`/api/customers/${customerId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(Object.fromEntries(formData))
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Close modal and refresh page
-                        closeEditModal();
-                        window.location.reload();
-                    } else {
-                        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                    }
-                });
-        });
-        
-        function openAddCustomerModal() {
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('modal-backdrop').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
-            document.getElementById('modal-backdrop').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Close modal when pressing ESC key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        document.getElementById('logo').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Check file size (2MB limit)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('ขนาดไฟล์ต้องไม่เกิน 2MB');
-                    this.value = '';
-                    return;
-                }
-
-                const preview = document.getElementById('preview');
-                const logoPreview = document.getElementById('logoPreview');
-                const reader = new FileReader();
-
-                reader.onload = function(e) {
-                    logoPreview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-
-                reader.readAsDataURL(file);
-            }
-        });
-
-
-        function addCustomer(event) {
-            event.preventDefault(); // ป้องกันการ submit form แบบปกติ
-
-            // สร้าง FormData object สำหรับส่งข้อมูลรวมถึงไฟล์
-            const formData = new FormData();
-            
-            // เพิ่มข้อมูลลูกค้าเข้า FormData
-            formData.append('name', document.getElementById('customerName').value);
-            formData.append('hq_contact_name', document.getElementById('contactName').value);
-            formData.append('hq_contact_phone', document.getElementById('contactPhone').value);
-            formData.append('hq_contact_email', document.getElementById('contactEmail').value);
-            formData.append('hq_address', document.getElementById('address').value);
-            formData.append('tax_number', document.getElementById('tax_number').value);
-            formData.append('website_url', document.getElementById('website_url').value);
-
-            // เพิ่ม notes ถ้ามี element
-            const notesElement = document.getElementById('notes');
-            if (notesElement) {
-                formData.append('notes', notesElement.value);
-            }
-
-            // เพิ่มไฟล์โลโก้ถ้ามีการอัปโหลด
-            const logoInput = document.getElementById('logo');
-            if (logoInput && logoInput.files[0]) {
-                formData.append('logo', logoInput.files[0]);
-            }
-
-            // ส่งข้อมูลไปยัง API
-            fetch('/api/customers', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
-                alert('เพิ่มข้อมูลลูกค้าสำเร็จ');
-                
-                // ปิด modal
-                document.getElementById('addCustomerModal').classList.remove('flex');
-                document.getElementById('addCustomerModal').classList.add('hidden');
-                
-                // รีโหลดหน้าหรืออัพเดตตารางข้อมูล
-                location.reload();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูลลูกค้า');
-            });
-        }
-
-        document.querySelector('form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        
-        try {
-            const response = await fetch('{{ url_for("add_customer") }}', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                alert(data.message);
-                closeModal();
-                // รีเฟรชหน้าหรือ update table ตามต้องการ
-                window.location.reload();
-            } else {
-                alert('เกิดข้อผิดพลาด: ' + data.message);
-            }
-        } catch (error) {
-            alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
-        }
-         });
-
-        function closeAddCustomerModal() {
-            document.getElementById('addCustomerModal').classList.remove('flex');
-            document.getElementById('addCustomerModal').classList.add('hidden');
-        }
-
-
-        function openEditModal(customerId) {
-            fetch(`/api/customers/${customerId}`)
-                .then(response => response.json())
-                .then(customer => {
-                    console.log('Customer data:', customer); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
-
-                    // Populate fields
-                    document.getElementById('customerId').value = customer.id;
-                    document.getElementById('customerName').value = customer.name;
-                    document.getElementById('contactName').value = customer.hq_contact_name;
-                    document.getElementById('contactPhone').value = customer.hq_contact_phone;
-                    document.getElementById('contactEmail').value = customer.hq_contact_email;
-                    // document.getElementById('address').value = customer.hq_address;
-                    // document.getElementById('tax_number').value = customer.tax_number || '';
-                    document.getElementById('website_url').value = customer.website_url || '';
-
-                    // ตรวจสอบ textarea notes
-                    const notesElement = document.getElementById('notes');
-                    if (notesElement) {
-                        console.log('Notes from API:', customer.notes); // เพิ่ม log เพื่อดูค่า notes
-                        notesElement.value = customer.notes || '';
-                    } else {
-                        console.error('Notes element not found'); // เพิ่ม log กรณีไม่พบ element
-                    }
-
-                    // Set logo preview
-                    const logoImg = document.getElementById('currentLogo');
-                    if (customer.logo_mimetype) {
-                        logoImg.src = `/api/customers/${customerId}/logo`;
-                        logoImg.style.display = 'block';
-                    } else {
-                        logoImg.src = '';
-                        logoImg.style.display = 'none';
-                    }
-
-                    // Show modal
-                    document.getElementById('editCustomerModal').classList.remove('hidden');
-                    document.getElementById('editCustomerModal').classList.add('flex');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการโหลดข้อมูลลูกค้า');
-                });
-        }
-        function confirmDelete() {
-            document.getElementById('deleteConfirmDialog').classList.remove('hidden');
-        }
-
-        function cancelDelete() {
-            document.getElementById('deleteConfirmDialog').classList.add('hidden');
-        }
-
-        function deactivateCustomer() {
-            const customerId = document.getElementById('customerId').value;
-
-            fetch(`/api/customers/${customerId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(response => response.json().then(data => ({
-                    ok: response.ok,
-                    status: response.status,
-                    data: data
-                })))
-                .then(({ ok, status, data }) => {
-                    if (!ok) {
-                        throw new Error(data.message || `Server returned ${status}`);
-                    }
-
-                    // ถ้าสำเร็จ
-                    document.getElementById('deleteConfirmDialog').classList.add('hidden');
-                    closeEditModal();
-                    location.reload();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(error.message);
-                });
-        }
-
-        // Add logo preview functionality
-        document.getElementById('logoInput').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                    alert('ขนาดไฟล์ต้องไม่เกิน 2MB');
-                    this.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    document.getElementById('currentLogo').src = e.target.result;
-                    document.getElementById('currentLogo').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Update form submission to handle file upload
-        document.getElementById('editCustomerForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const customerId = formData.get('customer_id');
-
-            fetch(`/api/customers/${customerId}`, {
-                method: 'PUT',
-                body: formData  // Send FormData directly for file upload
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        closeEditModal();
-                        window.location.reload();
-                    } else {
-                        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                    }
-                });
-        });
-    </script>
+        <script src="/static/js/realtime-search.js"></script>
+        <script src="/static/js/modal.js"></script>
 
     </body>
 
