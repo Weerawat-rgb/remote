@@ -21,39 +21,53 @@ function openAddCustomerModal() {
 
 function openEditModal(customerId) {
     console.log('Opening edit modal for customer ID:', customerId);
-    
-    // แสดง loading indicator (ถ้ามี)
+
+    // แสดง loading indicator
     const modal = document.getElementById('editCustomerModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    
+
     // ดึงข้อมูลลูกค้า
     fetch(`/api/customers/${customerId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(customer => {
-            console.log('Customer data:', customer);
-            
+            console.log('Customer data received:', customer);
+
+            // ล้างค่าฟอร์มก่อน (สำคัญ!)
+            document.getElementById('editCustomerForm').reset();
+
             // กำหนดค่าพื้นฐาน
             document.getElementById('customerId').value = customer.id;
             document.getElementById('customerName').value = customer.name || '';
-            
-            // กำหนดค่า notes
-            const notesField = document.getElementById('notes');
-            if (notesField) {
-                notesField.value = customer.notes || '';
-            }
-            
-            // กำหนดค่า website_url (สำคัญ!)
-            const websiteUrlField = document.getElementById('website_url');
-            if (websiteUrlField) {
-                console.log('Setting website_url to:', customer.website_url);
-                websiteUrlField.value = customer.website_url || '';
-                // ตรวจสอบค่าหลังจากกำหนด
-                setTimeout(() => {
-                    console.log('website_url after set:', websiteUrlField.value);
-                }, 100);
-            }
-            
+            document.getElementById('notess').value = customer.notes || '';
+            document.getElementById('website_urll').value = customer.website_url || '';
+
+            // // กำหนดค่า notes
+            // const notesField = document.getElementById('notes');
+            // if (notesField) {
+            //     console.log('Found notes field, setting to:', customer.notes);
+            //     notesField.innerHTML = customer.notes || ''; // ลองใช้ innerHTML แทน value
+            //     notesField.value = customer.notes || '';
+            //     console.log('Notes field value after setting:', notesField.value);
+            // } else {
+            //     console.warn('Notes field not found with ID "notes"');
+            // }
+
+            // // กำหนดค่า website_url
+            // const websiteUrlField = document.getElementById('website_url');
+            // if (websiteUrlField) {
+            //     console.log('Found website_url field, setting to:', customer.website_url);
+            //     websiteUrlField.value = customer.website_url || '';
+            //     console.log('Website field value after setting:', websiteUrlField.value);
+            // } else {
+            //     console.warn('Website field not found with ID "website_url"');
+            // }
+
             // แสดงโลโก้
             const logoImg = document.getElementById('currentLogo');
             if (logoImg) {
