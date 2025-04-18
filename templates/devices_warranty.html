@@ -39,30 +39,31 @@
             </div>
 
             <!-- Results Table -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
+            <div class="overflow-x-auto w-full">
+                <table class="min-w-full bg-white table-auto">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                รหัสสินค้า</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                รายละเอียดสินค้า</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                ชื่อสินค้า</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                หมายเลข S/N</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 ชื่อลูกค้า</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 วันที่ซื้อ</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 อายุการใช้งาน</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 ผู้จัดจำหน่าย</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                ข้อมูลติดต่อ/ หมายเหตุ</th>
                         </tr>
                     </thead>
-                    <tbody id="resultsBody">
+                    <tbody id="resultsBody" class="divide-y divide-gray-200">
                         <!-- Results will be inserted here -->
                     </tbody>
                 </table>
             </div>
-
             <!-- No Results Message -->
             <div id="noResults" class="hidden text-center py-4 text-gray-500">
                 ไม่พบข้อมูล
@@ -130,6 +131,9 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
                                         ${item.SupplierName || '-'}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 break-words max-w-[200px]">
+                                        ${item.SpecialCondition || '-'}
                                     </td>
                                 </tr>
                             `;
